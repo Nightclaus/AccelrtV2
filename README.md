@@ -30,7 +30,7 @@ This site serves as:
 
 ## Legacy Site
 
-View the live landing page here:  
+View the live landing page here (legacy):  
 👉 [https://accerate.vercel.app/](https://accerate.vercel.app/)
 
 ---

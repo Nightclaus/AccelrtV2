@@ -42,6 +42,7 @@
         </div>
     </section>
 
+    <!-- SERVICES SECTION -->
     <div class="container">
         <!-- SERVICES INTRO -->
         <section class="services-intro">
@@ -185,5 +186,157 @@
         </div>
     </section>
 
+    <!-- FAQ SECTION -->
+    <div class="process-section-container">
+        <!-- Reuse -->
+        <section class="process-header">
+            <h2 class="services-intro big-button-heading process-title-tag">Frequently Asked Questions</h2>
+            <!-- <p class="services-intro services-intro-description">Step-by-Step Guide to Achieving<br>Your Business Goals</p> -->
+        </section>
+
+        <div class="accordion">
+            <div class="accordion-item active"> <!-- First item starts active -->
+                <div class="accordion-header">
+                    <div class="accordion-title-area">
+                        <span class="accordion-number">01</span>
+                        <span class="accordion-title">Consultation</span>
+                    </div>
+                    <span class="accordion-icon">-</span>
+                </div>
+                <div class="accordion-content">
+                    <p>During the initial consultation, we will discuss your business goals and objectives, target audience, and current marketing efforts. This will allow us to understand your needs and tailor our services to best fit your requirements.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title-area">
+                        <span class="accordion-number">02</span>
+                        <span class="accordion-title">Research and Strategy Development</span>
+                    </div>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <p>Based on our consultation, we conduct thorough research into your industry, competitors, and target market. We then develop a comprehensive digital marketing strategy outlining the best channels and tactics to achieve your objectives.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title-area">
+                        <span class="accordion-number">03</span>
+                        <span class="accordion-title">Implementation</span>
+                    </div>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <p>Our skilled team puts the strategy into action. This includes setting up campaigns, creating content, developing websites or landing pages, and configuring tracking and analytics to measure performance effectively.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title-area">
+                        <span class="accordion-number">04</span>
+                        <span class="accordion-title">Monitoring and Optimization</span>
+                    </div>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <p>We continuously monitor campaign performance, analyzing data to identify areas for improvement. Regular optimizations are made to ensure your marketing efforts are delivering the best possible results and ROI.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title-area">
+                        <span class="accordion-number">05</span>
+                        <span class="accordion-title">Reporting and Communication</span>
+                    </div>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <p>You'll receive regular, transparent reports detailing campaign progress, key metrics, and insights. We maintain open communication to keep you informed and involved every step of the way.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title-area">
+                        <span class="accordion-number">06</span>
+                        <span class="accordion-title">Continual Improvement</span>
+                    </div>
+                    <span class="accordion-icon">+</span>
+                </div>
+                <div class="accordion-content">
+                    <p>Digital marketing is an evolving field. We stay updated with the latest trends and algorithm changes, continually refining our strategies to ensure long-term success and growth for your business.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const accordionItems = document.querySelectorAll('.accordion-item');
+
+        // Function to open the first item by default
+        function openFirstItem() {
+            const firstItem = accordionItems[0];
+            if (firstItem) {
+                const header = firstItem.querySelector('.accordion-header');
+                const content = firstItem.querySelector('.accordion-content');
+                const icon = firstItem.querySelector('.accordion-icon');
+                
+                firstItem.classList.add('active');
+                header.style.backgroundColor = "var(--teal-card-bg)";
+                content.style.maxHeight = content.scrollHeight + "px";
+                icon.textContent = '-';
+            }
+        }
+        
+        function resetAccordion(item) {
+            const header = item.querySelector('.accordion-header');
+            const content = item.querySelector('.accordion-content');
+            const icon = item.querySelector('.accordion-icon');
+
+            item.classList.remove('active');
+            header.style.backgroundColor = "var(--white)";
+            content.style.backgroundColor = "var(--white)";
+            content.style.maxHeight = null;
+            icon.textContent = '+';
+        }
+        openFirstItem(); // Call the function to open the first item
+
+        accordionItems.forEach(item => {
+            const header = item.querySelector('.accordion-header');
+            const content = item.querySelector('.accordion-content');
+            const icon = item.querySelector('.accordion-icon');
+
+            header.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+
+                // Close all other items
+                accordionItems.forEach(otherItem => {
+                    if (otherItem !== item && otherItem.classList.contains('active')) {
+                        resetAccordion(otherItem);
+                    }
+                });
+
+                // Toggle the clicked item
+                if (isActive) { // If it was active, close it
+                    resetAccordion(item);
+                } else { // If it was closed, open it
+                    item.classList.add('active');
+                    header.style.backgroundColor = "var(--teal-card-bg)";
+                    content.style.backgroundColor = "var(--teal-card-bg)";
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    icon.textContent = '-';
+                }
+            });
+        });
+    });
+</script>
 </html>

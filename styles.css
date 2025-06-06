@@ -890,6 +890,9 @@ body {
     .contact-decoration-area img {
         max-height: 200px;
     }
+    .contact-decoration-area {
+        display: none;
+    }
 }
 @media (max-width: 480px) {
     .form-options {

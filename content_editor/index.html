@@ -224,6 +224,7 @@
                 console.log("Fetched data for form builder:", currentFetchedData);
 
                 if (currentFetchedData && typeof currentFetchedData === 'object') {
+                    jsonDataTextarea.value = JSON.stringify(currentFetchedData, null, 2) // Autofill the paste json
                     buildDynamicForm(currentFetchedData);
                     submitFormDataBtn.style.display = 'block';
                     const fetchingMsg = dynamicFormContainer.querySelector('p');

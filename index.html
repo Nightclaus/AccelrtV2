@@ -229,6 +229,59 @@ document.addEventListener('DOMContentLoaded', function () {
         teamObserver.observe(teamSection); 
         handlePageScrollAnimation();
     } 
+
+    const contactForm = document.getElementById('contactForm');
+    const formStatusDiv = document.getElementById('formSubmissionStatus');
+
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default page reload
+
+            formStatusDiv.textContent = 'Sending...';
+            formStatusDiv.className = ''; // Reset classes
+
+            const formData = new FormData(contactForm);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            // For JSONPlaceholder, it expects userId, title, body for a 'post'
+            // We'll map our form data to something it might understand or just send our structure
+            const postData = {
+                userId: 1, // Example user ID
+                title: `Contact Form Submission from ${data.name || 'Anonymous'}`,
+                body: `Type: ${data.inquiryType}\nEmail: ${data.email}\nMessage: ${data.message}`,
+                formData: data // Include original form data as well
+            };
+
+            fetch('https://jsonplaceholder.typicode.com/posts', {
+                method: 'POST',
+                body: JSON.stringify(postData),
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // response.status gives the HTTP status code
+                    throw new Error(`Network response was not ok: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(json => {
+                console.log('Success (from placeholder):', json);
+                formStatusDiv.textContent = 'Message Sent Successfully! (Placeholder response)';
+                formStatusDiv.className = 'success'; // Add success class for styling
+                contactForm.reset(); // Clear the form
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                formStatusDiv.textContent = `Error sending message: ${error.message}. Please try again.`;
+                formStatusDiv.className = 'error'; // Add error class for styling
+            });
+        });
+    }
 });
 </script>
 <body>
@@ -658,6 +711,58 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
     </div>
 
+    <section class="contact-us-section">
+        <div class="container-narrow"> <!-- Using a narrower container for this section -->
+            <div class="contact-header">
+                <span class="contact-title-tag">Contact Us</span>
+                <p class="contact-subtitle">Connect with Us: Let's Discuss Your<br>Digital Marketing Needs</p>
+            </div>
+
+            <div class="contact-content-wrapper">
+                <div class="contact-form-area">
+                    <form id="contactForm">
+                        <div class="form-options">
+                            <label class="radio-option">
+                                <input type="radio" name="inquiryType" value="sayHi" checked>
+                                <span class="custom-radio"></span>
+                                Say Hi
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="inquiryType" value="getQuote">
+                                <span class="custom-radio"></span>
+                                Get a Quote
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactName">Name</label>
+                            <input type="text" id="contactName" name="name" placeholder="Name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactEmail">Email*</label>
+                            <input type="email" id="contactEmail" name="email" placeholder="Email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactMessage">Message*</label>
+                            <textarea id="contactMessage" name="message" placeholder="Message" rows="6" required></textarea>
+                        </div>
+
+                        <button type="submit" class="submit-button">Send Message</button>
+                    </form>
+                </div>
+                <div class="contact-decoration-area">
+                    <img src="placeholder-contact-decoration.svg" alt="Abstract starburst decoration">
+                    <!-- If you want to create the stars with divs, it would be more complex here
+                        SVG or an image is recommended for that specific starburst.
+                        For now, using a placeholder image.
+                    -->
+                </div>
+            </div>
+            <div id="formSubmissionStatus" style="margin-top: 20px; text-align: center;"></div>
+        </div>
+    </section>
 </body>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

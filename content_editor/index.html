@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Updater</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f6f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        textarea:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status-message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .status-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .api-key-group {
+            margin-bottom: 20px;
+        }
+        .api-key-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Update Website Content</h1>
+
+        <div class="api-key-group">
+            <label for="apiKey">API Key (Optional - if your API is secured):</label>
+            <input type="password" id="apiKey" placeholder="Enter your API Key if required">
+        </div>
+
+        <div class="form-group">
+            <label for="jsonData">Paste JSON Content Here:</label>
+            <textarea id="jsonData" placeholder='{ "hero": { "title": "New Title" }, ... }'></textarea>
+        </div>
+
+        <button id="submitBtn">Update Content</button>
+
+        <div id="statusMessage" class="status-message" style="display: none;"></div>
+    </div>
+
+    <script>
+        const jsonDataTextarea = document.getElementById('jsonData');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMessageDiv = document.getElementById('statusMessage');
+        const apiKeyInput = document.getElementById('apiKey');
+        const UPDATE_API_URL = 'https://accelrt-v2.vercel.app/api/update-data'; 
+
+
+        submitBtn.addEventListener('click', async function() {
+            const jsonString = jsonDataTextarea.value.trim();
+            const apiKey = apiKeyInput.value.trim();
+
+            if (!jsonString) {
+                displayStatus('JSON data cannot be empty.', 'error');
+                return;
+            }
+
+            let dataToSubmit;
+            try {
+                dataToSubmit = JSON.parse(jsonString);
+            } catch (error) {
+                displayStatus(`Invalid JSON: ${error.message}`, 'error');
+                return;
+            }
+
+            if (typeof dataToSubmit !== 'object' || dataToSubmit === null) {
+                 displayStatus('JSON data must be an object.', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            displayStatus('Updating content...', null); // Neutral status
+
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            if (apiKey) {
+                headers['X-API-KEY'] = apiKey; // Or whatever header name your API expects
+            }
+
+            try {
+                const response = await fetch(UPDATE_API_URL, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(dataToSubmit)
+                });
+
+                const result = await response.json(); // Try to parse JSON regardless of status
+
+                if (!response.ok) {
+                    throw new Error(result.error || result.message || `HTTP error! Status: ${response.status}`);
+                }
+
+                displayStatus(result.message || 'Content updated successfully!', 'success');
+                // jsonDataTextarea.value = ''; // Optionally clear textarea on success
+
+            } catch (error) {
+                console.error('Error updating content:', error);
+                displayStatus(`Failed to update: ${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        function displayStatus(message, type) {
+            statusMessageDiv.textContent = message;
+            statusMessageDiv.className = 'status-message'; // Reset classes
+            if (type) {
+                statusMessageDiv.classList.add(type); // 'success' or 'error'
+            }
+            statusMessageDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

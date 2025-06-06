@@ -56,7 +56,6 @@ export default async function handler(req, res) {
   // }
 
   try {
-    console.log('Recieved');
     const incomingData = req.body; // Vercel automatically parses JSON body
 
     if (!incomingData || typeof incomingData !== 'object' || Object.keys(incomingData).length === 0) {
@@ -64,11 +63,11 @@ export default async function handler(req, res) {
     }
 
     const docRef = db.collection(COLLECTION_NAME).doc(DOCUMENT_ID);
-    console.log("Found Ref");
 
     // Set the document. This will overwrite the document if it exists,
     // or create it if it doesn't. Firestore stores the JS object as a map.
     await docRef.set(incomingData, { merge: false }); // merge: false ensures complete override
+    print(incomingData)
 
     res.status(200).json({ message: `Document '${DOCUMENT_ID}' in collection '${COLLECTION_NAME}' has been successfully set/overridden.` });
 

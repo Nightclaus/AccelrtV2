@@ -291,9 +291,13 @@ document.addEventListener('DOMContentLoaded', function () {
             <img src="assets/hero.JPG" alt="Hero Image" class="hero-image">
             <!-- Simplified hero inner structure for clarity, original had an extra div -->
             <div class="hero-content">
-                <h1>Accelrt</h1>
-                <p class="description">Hackathons in Australia</p>
-                <button class="hero-button">Join Us!</button>
+                <div class="hero-highlight-sml" style="width: 100px; height: 50px;"></div>
+                <h1 class="hero-highlight-lge">Accelrt</h1>
+                <div class="hero-highlight-sml">
+                    <p class="description">Hackathons in Australia</p>
+                    <button class="hero-button">Join Us!</button>
+                </div>
+                <div class="hero-highlight-sml" style="width: 70px; height: 50px;"></div>
             </div>
         </div>
     </section>
@@ -444,9 +448,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     <!-- TEAM SECTION -->
     <section class="team-section">
-        <div class="container"> <!-- Optional: If you use a global container for width -->
-            <!-- You can add a section title here if needed -->
-            <!-- <h2 class="section-title">Meet Our Team</h2> -->
+        <div class="container">
+            <div class="contact-header" style="padding-left: 30px;"> <!-- container-narrow -->
+                <span class="contact-title-tag">Meet our Team!</span>
+                <p class="contact-subtitle">Connect with Us: Let's Discuss Your<br>Digital Marketing Needs</p>
+            </div>
 
             <div class="team-row-wrapper">
                 <div class="team-row top-row">
@@ -624,7 +630,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="faq-section-container light-theme">
             <!-- Reuse -->
             <section class="process-header">
-                <h2 class="services-intro big-button-heading process-title-tag">Frequently Asked Questions</h2>
+                <h2 class="services-intro big-button-heading process-title-tag">Our FAQ</h2>
                 <!-- <p class="services-intro services-intro-description">Step-by-Step Guide to Achieving<br>Your Business Goals</p> -->
             </section>
 
@@ -711,6 +717,7 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
     </div>
 
+    <!-- CONTACT FORM -->
     <section class="contact-us-section">
         <div class="container-narrow"> <!-- Using a narrower container for this section -->
             <div class="contact-header">
@@ -763,6 +770,13 @@ document.addEventListener('DOMContentLoaded', function () {
             <div id="formSubmissionStatus" style="margin-top: 20px; text-align: center;"></div>
         </div>
     </section>
+
+    <!-- FOOTER -->   
+    <footer class="site-footer">
+    <div class="container"> <!-- Or container-narrow if you prefer a narrower footer -->
+        <p>© 2025 AccelRT. All Rights Reserved.</p>
+    </div>
+</footer>
 </body>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

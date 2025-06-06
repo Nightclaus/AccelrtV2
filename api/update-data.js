@@ -66,7 +66,7 @@ export default async function handler(req, res) {
 
     // Set the document. This will overwrite the document if it exists,
     // or create it if it doesn't. Firestore stores the JS object as a map.
-    await docRef.set({hello: "HELLO"}, { merge: false }); // merge: false ensures complete override
+    await docRef.set({hello: "HELLO"}, { merge: true }); // merge: false ensures complete override
     console.log(incomingData);
 
     res.status(200).json({ message: `Document '${DOCUMENT_ID}' in collection '${COLLECTION_NAME}' has been successfully set/overridden.` });

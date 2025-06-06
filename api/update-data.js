@@ -1,13 +1,5 @@
 // root/api/update-data.js
 
-/*
-1. Fetches the current map
-2. Converts the firstlayer in the json into distict blocs
-3. Converts the second layer into form box with the current content being refilled
-4. a submit button that recompiles the form data into the original form and send it to be updated
-*/
-
-
 import admin from 'firebase-admin';
 
 if (!admin.apps.length) {

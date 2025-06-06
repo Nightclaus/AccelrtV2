@@ -21,9 +21,10 @@
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 700px;
+            max-width: 800px; /* Slightly wider for more fields */
+            margin-bottom: 20px;
         }
-        h1 {
+        h1, h2 {
             text-align: center;
             color: #2c3e50;
             margin-bottom: 25px;
@@ -32,20 +33,29 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
+            color: #495057;
         }
-        textarea {
+        textarea, input[type="text"], input[type="password"] {
             width: 100%;
-            min-height: 300px;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #ced4da;
             border-radius: 5px;
             box-sizing: border-box;
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
             font-size: 14px;
             margin-bottom: 15px;
+            color: #495057;
         }
+        textarea#jsonData {
+            min-height: 250px;
+        }
+        textarea.dynamic-field {
+            min-height: 80px; /* Smaller for individual field textareas */
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus,
         textarea:focus {
-            border-color: #007bff;
+            border-color: #80bdff;
             outline: none;
             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
@@ -60,6 +70,7 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
             width: 100%;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #0056b3;
@@ -70,7 +81,7 @@
         }
         .status-message {
             margin-top: 20px;
-            padding: 10px;
+            padding: 12px;
             border-radius: 5px;
             text-align: center;
             font-weight: 500;
@@ -88,19 +99,36 @@
         .api-key-group {
             margin-bottom: 20px;
         }
-        .api-key-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 14px;
+        .separator {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 40px 0;
+            color: #6c757d;
+        }
+        .dynamic-form-section {
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+        }
+        .dynamic-form-section h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #007bff;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+            font-size: 1.3em;
+        }
+        .form-field {
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Update Website Content</h1>
+        <h1>Update Website Content (Raw JSON)</h1>
 
         <div class="api-key-group">
             <label for="apiKey">API Key:</label>
@@ -108,89 +136,374 @@
         </div>
 
         <div class="form-group">
-            <label for="jsonData">Paste JSON Content Here:</label>
+            <label for="jsonData">Paste Full JSON Content Here:</label>
             <textarea id="jsonData" placeholder='{ "hero": { "title": "New Title" }, ... }'></textarea>
         </div>
 
-        <button id="submitBtn">Update Content</button>
+        <button id="submitRawJsonBtn">Update with Raw JSON</button>
+        <div id="statusMessageRaw" class="status-message" style="display: none;"></div>
+    </div>
 
-        <div id="statusMessage" class="status-message" style="display: none;"></div>
+    <div class="separator">--- OR ---</div>
+
+    <div class="container">
+        <h2>Update Content via Form</h2>
+        <button id="loadCurrentDataBtn">Load Current Data & Build Form</button>
+        <div id="dynamicFormContainer" style="margin-top: 20px;">
+            <!-- Dynamic form fields will be injected here -->
+        </div>
+        <button id="submitFormDataBtn" style="display:none; margin-top: 20px;">Update with Form Data</button>
+        <div id="statusMessageForm" class="status-message" style="display: none;"></div>
     </div>
 
     <script>
         const jsonDataTextarea = document.getElementById('jsonData');
-        const submitBtn = document.getElementById('submitBtn');
-        const statusMessageDiv = document.getElementById('statusMessage');
+        const submitRawJsonBtn = document.getElementById('submitRawJsonBtn');
+        const statusMessageRawDiv = document.getElementById('statusMessageRaw');
+        
         const apiKeyInput = document.getElementById('apiKey');
-        const UPDATE_API_URL = 'https://accelrt-v2.vercel.app/api/update-data'; 
+        const loadCurrentDataBtn = document.getElementById('loadCurrentDataBtn');
+        const dynamicFormContainer = document.getElementById('dynamicFormContainer');
+        const submitFormDataBtn = document.getElementById('submitFormDataBtn');
+        const statusMessageFormDiv = document.getElementById('statusMessageForm');
 
+        // --- CONFIGURATION ---
+        const UPDATE_API_URL = 'https://accelrt-v2.vercel.app/api/update-data'; // REPLACE if different
+        const GET_API_URL = 'https://accelrt-v2.vercel.app/api/get-data';    // REPLACE if different
+        // Or for local testing with `vercel dev`:
+        // const UPDATE_API_URL = '/api/update-data'; 
+        // const GET_API_URL = '/api/get-data';
+        // --- END CONFIGURATION ---
 
-        submitBtn.addEventListener('click', async function() {
-            const jsonString = jsonDataTextarea.value.trim();
-            const apiKey = apiKeyInput.value.trim();
+        let currentFetchedData = null; // To store the fetched data for recompilation
 
-            if (!jsonString) {
-                displayStatus('JSON data cannot be empty.', 'error');
+        // --- RAW JSON SUBMISSION ---
+        submitRawJsonBtn.addEventListener('click', async function() {
+            await submitData(jsonDataTextarea.value.trim(), statusMessageRawDiv);
+        });
+
+        // --- DYNAMIC FORM SECTION ---
+        loadCurrentDataBtn.addEventListener('click', async function() {
+            loadCurrentDataBtn.disabled = true;
+            loadCurrentDataBtn.textContent = 'Loading...';
+            dynamicFormContainer.innerHTML = '<p>Fetching current data...</p>';
+            submitFormDataBtn.style.display = 'none';
+            displayStatusForm('', null);
+
+            const apiKey = apiKeyInput.value.trim(); // Use API key for fetching too if get-data is secured
+            const headers = {};
+            if (apiKey) {
+                headers['X-API-KEY'] = apiKey; // Assuming get-data might also use this
+            }
+
+            try {
+                const response = await fetch(GET_API_URL, { headers });
+                if (!response.ok) {
+                    const errorResult = await response.json().catch(() => ({}));
+                    throw new Error(errorResult.error || `Failed to load current data. Status: ${response.status}`);
+                }
+                currentFetchedData = await response.json();
+                buildDynamicForm(currentFetchedData);
+                submitFormDataBtn.style.display = 'block';
+                dynamicFormContainer.firstChild.remove(); // Remove "Fetching..." message
+            } catch (error) {
+                console.error('Error loading current data:', error);
+                displayStatusForm(`Error loading data: ${error.message}`, 'error');
+                dynamicFormContainer.innerHTML = `<p style="color:red;">Failed to load data for form.</p>`;
+            } finally {
+                loadCurrentDataBtn.disabled = false;
+                loadCurrentDataBtn.textContent = 'Load Current Data & Build Form';
+            }
+        });
+
+        function buildDynamicForm(data) {
+            dynamicFormContainer.innerHTML = ''; // Clear previous form
+
+            for (const sectionKey in data) {
+                if (Object.hasOwnProperty.call(data, sectionKey)) {
+                    const sectionValue = data[sectionKey];
+                    
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.className = 'dynamic-form-section';
+                    
+                    const sectionTitle = document.createElement('h3');
+                    sectionTitle.textContent = capitalizeFirstLetter(sectionKey.replace(/([A-Z])/g, ' $1')); // Add spaces for camelCase
+                    sectionDiv.appendChild(sectionTitle);
+
+                    if (typeof sectionValue === 'object' && sectionValue !== null && !Array.isArray(sectionValue)) {
+                        // Second layer - treat as fields
+                        for (const fieldKey in sectionValue) {
+                            if (Object.hasOwnProperty.call(sectionValue, fieldKey)) {
+                                const fieldValue = sectionValue[fieldKey];
+                                const fieldId = `${sectionKey}-${fieldKey}`;
+
+                                const fieldDiv = document.createElement('div');
+                                fieldDiv.className = 'form-field';
+
+                                const label = document.createElement('label');
+                                label.htmlFor = fieldId;
+                                label.textContent = capitalizeFirstLetter(fieldKey.replace(/([A-Z])/g, ' $1')) + ':';
+                                fieldDiv.appendChild(label);
+
+                                if (typeof fieldValue === 'string' && fieldValue.length > 60) { // Use textarea for longer strings
+                                    const textarea = document.createElement('textarea');
+                                    textarea.id = fieldId;
+                                    textarea.name = fieldId;
+                                    textarea.value = fieldValue;
+                                    textarea.className = 'dynamic-field';
+                                    textarea.rows = Math.max(3, Math.ceil(fieldValue.length / 50));
+                                    fieldDiv.appendChild(textarea);
+                                } else if (typeof fieldValue === 'string' || typeof fieldValue === 'number' || typeof fieldValue === 'boolean') {
+                                    const input = document.createElement('input');
+                                    input.type = 'text'; // Keep as text for simplicity, booleans will be 'true'/'false'
+                                    input.id = fieldId;
+                                    input.name = fieldId;
+                                    input.value = fieldValue;
+                                    fieldDiv.appendChild(input);
+                                } else {
+                                    // For arrays or deeper objects, just show raw JSON in a disabled textarea
+                                    const textarea = document.createElement('textarea');
+                                    textarea.id = fieldId;
+                                    textarea.name = fieldId;
+                                    textarea.value = JSON.stringify(fieldValue, null, 2);
+                                    textarea.className = 'dynamic-field';
+                                    textarea.rows = 5;
+                                    textarea.disabled = true; // Not editable via this simple form
+                                    const notice = document.createElement('small');
+                                    notice.textContent = ' (Complex data - edit via Raw JSON editor)';
+                                    notice.style.display = 'block';
+                                    notice.style.color = '#6c757d';
+                                    fieldDiv.appendChild(textarea);
+                                    fieldDiv.appendChild(notice);
+                                }
+                                sectionDiv.appendChild(fieldDiv);
+                            }
+                        }
+                    } else if (Array.isArray(sectionValue)) {
+                         // Handle top-level arrays (e.g., services, teamMembers, faqItems)
+                         sectionValue.forEach((item, index) => {
+                            if (typeof item === 'object' && item !== null) {
+                                const itemTitle = document.createElement('h4');
+                                itemTitle.textContent = `Item ${index + 1}`;
+                                itemTitle.style.marginTop = '15px';
+                                itemTitle.style.marginBottom = '10px';
+                                itemTitle.style.color = '#343a40';
+                                sectionDiv.appendChild(itemTitle);
+
+                                for (const itemKey in item) {
+                                    if (Object.hasOwnProperty.call(item, itemKey)) {
+                                        const itemValue = item[itemKey];
+                                        const fieldId = `${sectionKey}-${index}-${itemKey}`;
+                                        
+                                        const fieldDiv = document.createElement('div');
+                                        fieldDiv.className = 'form-field';
+
+                                        const label = document.createElement('label');
+                                        label.htmlFor = fieldId;
+                                        label.textContent = capitalizeFirstLetter(itemKey.replace(/([A-Z])/g, ' $1')) + ':';
+                                        fieldDiv.appendChild(label);
+
+                                        if (typeof itemValue === 'string' && itemValue.length > 60) {
+                                            const textarea = document.createElement('textarea');
+                                            textarea.id = fieldId;
+                                            textarea.name = fieldId;
+                                            textarea.value = itemValue;
+                                            textarea.className = 'dynamic-field';
+                                            textarea.rows = Math.max(3, Math.ceil(itemValue.length / 50));
+                                            fieldDiv.appendChild(textarea);
+                                        } else if (typeof itemValue === 'string' || typeof itemValue === 'number' || typeof itemValue === 'boolean') {
+                                            const input = document.createElement('input');
+                                            input.type = 'text';
+                                            input.id = fieldId;
+                                            input.name = fieldId;
+                                            input.value = itemValue;
+                                            fieldDiv.appendChild(input);
+                                        } else {
+                                            // Non-string value in array item, show as disabled JSON
+                                            const textarea = document.createElement('textarea');
+                                            textarea.value = JSON.stringify(itemValue, null, 2);
+                                            textarea.disabled = true; fieldDiv.appendChild(textarea);
+                                            const notice = document.createElement('small'); notice.textContent = ' (Complex data)'; fieldDiv.appendChild(notice);
+                                        }
+                                        sectionDiv.appendChild(fieldDiv);
+                                    }
+                                }
+                            }
+                         });
+                    } else {
+                        // Top-level simple value (string, number, boolean)
+                        const fieldId = sectionKey;
+                        const fieldDiv = document.createElement('div');
+                        fieldDiv.className = 'form-field';
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.id = fieldId;
+                        input.name = fieldId;
+                        input.value = sectionValue;
+                        fieldDiv.appendChild(input);
+                        sectionDiv.appendChild(fieldDiv);
+                    }
+                    dynamicFormContainer.appendChild(sectionDiv);
+                }
+            }
+        }
+
+        submitFormDataBtn.addEventListener('click', async function() {
+            if (!currentFetchedData) {
+                displayStatusForm('No data loaded to submit. Please load current data first.', 'error');
                 return;
             }
 
+            const updatedData = JSON.parse(JSON.stringify(currentFetchedData)); // Deep clone
+
+            // Iterate through the generated form fields and update the cloned data object
+            const sections = dynamicFormContainer.querySelectorAll('.dynamic-form-section');
+            sections.forEach(sectionDiv => {
+                const sectionTitleElement = sectionDiv.querySelector('h3');
+                if (!sectionTitleElement) return;
+                
+                // Convert "Section Title" back to "sectionTitle" (approximate)
+                const sectionKey = sectionTitleElement.textContent.replace(/\s+/g, '').replace(':', '');
+                let originalSectionKey = Object.keys(updatedData).find(k => 
+                    k.toLowerCase() === sectionKey.toLowerCase() ||
+                    capitalizeFirstLetter(k.replace(/([A-Z])/g, ' $1')).replace(/\s+/g, '').toLowerCase() === sectionKey.toLowerCase()
+                );
+
+                if (!originalSectionKey || !updatedData[originalSectionKey]) return;
+
+                const fields = sectionDiv.querySelectorAll('.form-field');
+                
+                if (Array.isArray(updatedData[originalSectionKey])) {
+                    // Handle array updates
+                    let itemIndex = -1; // To track current item in the array
+                    let currentItemObject = null;
+
+                    fields.forEach(fieldDiv => {
+                        const inputElement = fieldDiv.querySelector('input[type="text"], textarea:not([disabled])');
+                        if (!inputElement) return;
+
+                        // Check if this field belongs to a new item in the array
+                        const itemTitleElement = fieldDiv.previousElementSibling;
+                        if (itemTitleElement && itemTitleElement.tagName === 'H4' && itemTitleElement.textContent.startsWith('Item ')) {
+                            itemIndex++;
+                            currentItemObject = updatedData[originalSectionKey][itemIndex];
+                        }
+                        
+                        if (currentItemObject) {
+                            const fieldIdParts = inputElement.id.split('-'); // e.g., services-0-titleTag1
+                            const itemKey = fieldIdParts.pop(); // last part is the key within the item
+                            
+                            if (Object.hasOwnProperty.call(currentItemObject, itemKey)) {
+                                if (typeof currentItemObject[itemKey] === 'number') {
+                                    currentItemObject[itemKey] = parseFloat(inputElement.value) || 0;
+                                } else if (typeof currentItemObject[itemKey] === 'boolean') {
+                                    currentItemObject[itemKey] = inputElement.value.toLowerCase() === 'true';
+                                } else {
+                                    currentItemObject[itemKey] = inputElement.value;
+                                }
+                            }
+                        }
+                    });
+
+                } else if (typeof updatedData[originalSectionKey] === 'object') {
+                    // Handle object updates (non-array)
+                    fields.forEach(fieldDiv => {
+                        const inputElement = fieldDiv.querySelector('input[type="text"], textarea:not([disabled])');
+                        if (!inputElement) return;
+
+                        const fieldIdParts = inputElement.id.split('-'); // e.g., hero-title
+                        const fieldKey = fieldIdParts.pop(); // last part is the key
+
+                        if (Object.hasOwnProperty.call(updatedData[originalSectionKey], fieldKey)) {
+                           if (typeof updatedData[originalSectionKey][fieldKey] === 'number') {
+                                updatedData[originalSectionKey][fieldKey] = parseFloat(inputElement.value) || 0;
+                            } else if (typeof updatedData[originalSectionKey][fieldKey] === 'boolean') {
+                                updatedData[originalSectionKey][fieldKey] = inputElement.value.toLowerCase() === 'true';
+                            } else {
+                                updatedData[originalSectionKey][fieldKey] = inputElement.value;
+                            }
+                        }
+                    });
+                } else {
+                    // Top-level simple value
+                     const inputElement = sectionDiv.querySelector('.form-field input[type="text"]');
+                     if (inputElement && Object.hasOwnProperty.call(updatedData, originalSectionKey)) {
+                        if (typeof updatedData[originalSectionKey] === 'number') {
+                            updatedData[originalSectionKey] = parseFloat(inputElement.value) || 0;
+                        } else if (typeof updatedData[originalSectionKey] === 'boolean') {
+                            updatedData[originalSectionKey] = inputElement.value.toLowerCase() === 'true';
+                        } else {
+                            updatedData[originalSectionKey] = inputElement.value;
+                        }
+                     }
+                }
+            });
+            
+            console.log("Data recompiled from form:", updatedData);
+            await submitData(JSON.stringify(updatedData), statusMessageFormDiv);
+        });
+
+
+        // --- SHARED SUBMISSION LOGIC ---
+        async function submitData(jsonString, statusDiv) {
+            const apiKey = apiKeyInput.value.trim();
             let dataToSubmit;
+
             try {
-                dataToSubmit = JSON.parse(jsonString);
-                console.log(dataToSubmit);
+                if (typeof jsonString === 'string') {
+                    dataToSubmit = JSON.parse(jsonString);
+                } else { // If already an object (e.g., from form recompilation)
+                    dataToSubmit = jsonString;
+                }
             } catch (error) {
-                displayStatus(`Invalid JSON: ${error.message}`, 'error');
+                displayStatusGeneral(`Invalid JSON format: ${error.message}`, 'error', statusDiv);
                 return;
             }
 
             if (typeof dataToSubmit !== 'object' || dataToSubmit === null) {
-                 displayStatus('JSON data must be an object.', 'error');
+                displayStatusGeneral('Data to submit must be a valid JSON object.', 'error', statusDiv);
                 return;
             }
 
-            submitBtn.disabled = true;
-            displayStatus('Updating content...', null); // Neutral status
+            const activeSubmitButton = statusDiv === statusMessageRawDiv ? submitRawJsonBtn : submitFormDataBtn;
+            activeSubmitButton.disabled = true;
+            displayStatusGeneral('Updating content...', null, statusDiv);
 
-            const headers = {
-                'Content-Type': 'application/json',
-            };
-
-            if (apiKey) {
-                headers['X-API-KEY'] = apiKey; // Or whatever header name your API expects
-            }
+            const headers = { 'Content-Type': 'application/json' };
+            if (apiKey) { headers['X-API-KEY'] = apiKey; }
 
             try {
                 const response = await fetch(UPDATE_API_URL, {
                     method: 'POST',
                     headers: headers,
-                    body: JSON.stringify(dataToSubmit)
+                    body: JSON.stringify(dataToSubmit) // Ensure it's stringified here
                 });
-
-                const result = await response.json(); // Try to parse JSON regardless of status
-
+                const result = await response.json();
                 if (!response.ok) {
                     throw new Error(result.error || result.message || `HTTP error! Status: ${response.status}`);
                 }
-
-                displayStatus(result.message || 'Content updated successfully!', 'success');
-                // jsonDataTextarea.value = ''; // Optionally clear textarea on success
-
+                displayStatusGeneral(result.message || 'Content updated successfully!', 'success', statusDiv);
             } catch (error) {
                 console.error('Error updating content:', error);
-                displayStatus(`Failed to update: ${error.message}`, 'error');
+                displayStatusGeneral(`Failed to update: ${error.message}`, 'error', statusDiv);
             } finally {
-                submitBtn.disabled = false;
+                activeSubmitButton.disabled = false;
             }
-        });
-
-        function displayStatus(message, type) {
-            statusMessageDiv.textContent = message;
-            statusMessageDiv.className = 'status-message'; // Reset classes
-            if (type) {
-                statusMessageDiv.classList.add(type); // 'success' or 'error'
-            }
-            statusMessageDiv.style.display = 'block';
         }
+        
+        function displayStatusGeneral(message, type, statusDiv) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message';
+            if (type) { statusDiv.classList.add(type); }
+            statusDiv.style.display = 'block';
+        }
+        
+        // Helper for capitalizing
+        function capitalizeFirstLetter(string) {
+            if (!string) return '';
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
     </script>
 </body>
 </html>

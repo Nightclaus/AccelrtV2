@@ -47,6 +47,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
+  const apiKey = req.headers['x-api-key'];
+  if (apiKey !== process.env.UPDATE_API_KEY) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+
   try {
     const docRef = db.collection(COLLECTION_NAME).doc(DOCUMENT_ID);
     const docSnap = await docRef.get();

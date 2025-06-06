@@ -848,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    fetch('https://accelrt-v2.vercel.app/api/get-data.js')
+    fetch('https://accelrt-v2.vercel.app/api/get-data')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

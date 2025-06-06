@@ -41,11 +41,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
-  // Maybe later, API Key Authentication
-  // const apiKey = req.headers['x-api-key'];
-  // if (apiKey !== process.env.UPDATE_API_KEY) {
-  //   return res.status(401).json({ error: 'Unauthorized' });
-  // }
+  const apiKey = req.headers['x-api-key'];
+  if (apiKey !== process.env.UPDATE_API_KEY) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   try {
     const incomingData = req.body; // Vercel automatically parses JSON body

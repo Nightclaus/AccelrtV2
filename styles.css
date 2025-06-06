@@ -444,6 +444,8 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
+    width: 90%;
+    border-bottom: 2px solid var(--text-dark);
 }
 
 .accordion-number {

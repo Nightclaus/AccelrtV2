@@ -62,7 +62,7 @@ export default async function handler(req, res) {
 
     // Correct: Assign an object, not a number
     incomingData["timestamp (automatic)"] = {
-    "timestamp of last update": date,
+    "timestamp of last update":  Date.now(),
     "formatted timestamp": formatted
     };
 

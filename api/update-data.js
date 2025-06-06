@@ -48,16 +48,18 @@ export default async function handler(req, res) {
 
   try {
     const incomingData = req.body; // Vercel automatically parses JSON body
+    incomingData.timestamp = Date.now();
 
     if (!incomingData || typeof incomingData !== 'object' || Object.keys(incomingData).length === 0) {
       return res.status(400).json({ error: 'Invalid or empty JSON payload in request body.' });
     }
 
     const docRef = db.collection(COLLECTION_NAME).doc(DOCUMENT_ID);
-
-    // Set the document. This will overwrite the document if it exists,
-    // or create it if it doesn't. Firestore stores the JS object as a map.
-    await docRef.set(incomingData, { merge: false }); // merge: false ensures complete override
+    const changeLogs = db.collection("change_logs")
+    const updateLog = changeLogs.doc();
+    
+    await updateLog.set(incomingData);
+    await docRef.set(incomingData, { merge: true }); // Safety, Not a complete overide
     console.log(incomingData);
 
     res.status(200).json({ message: `Document '${DOCUMENT_ID}' in collection '${COLLECTION_NAME}' has been successfully set/overridden.` });

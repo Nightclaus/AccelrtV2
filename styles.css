@@ -14,6 +14,16 @@
     --card-hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     --border-radius-md: 12px;
     --border-radius-lg: 16px;
+
+    --lime-green-profile: #BFFF60;
+    --card-border-color-team: #000000;
+    --card-bg-color-team: #FFFFFF;
+    --border-radius-card-team: 24px;
+    --border-radius-icon: 50%;
+    --profile-pic-area-size: 80px;
+    --profile-img-actual-size: 60px;
+    --shape-bar-thickness-percent: 48%;
+    --shape-bar-length-percent: 95%;
 }
 
 body {
@@ -279,7 +289,7 @@ body {
     padding: 60px 20px 100px 20px;
     color: var(--text-light);
 }
-.cta-section.light-theme {
+.light-theme {
     background-color: #F0F2F5;
     color: var(--text-dark);
 }
@@ -352,8 +362,11 @@ body {
     color: var(--text-muted);
 }
 
+.faq-section {
+    padding: 20;
+}
 
-.process-section-container {
+.faq-section-container {
     max-width: 800px; /* Adjust as needed */
     margin: 0 auto;
     padding: 0 20px 100px 20px;
@@ -456,6 +469,188 @@ body {
     font-size: 15px;
     color: var(--text-dark); /* Text color for description */
     line-height: 1.7;
+}
+
+/* --- TEAM SECTION STYLES --- */
+/* --- TEAM SECTION STYLES --- */
+.team-section {
+    padding: 60px 0;
+    background-color: var(--light-bg, #F7F7FC); /* This is the color the fade will blend into */
+    overflow-x: hidden;
+}
+
+.team-row-wrapper {
+    width: 100%;
+    overflow: hidden; /* Still crucial for the actual clipping */
+    margin-bottom: 25px;
+    position: relative; /* <<< ADD THIS: Required for positioning pseudo-elements */
+}
+.team-row-wrapper:last-child {
+    margin-bottom: 0;
+}
+
+/* Fading Edges for the Wrapper */
+.team-row-wrapper::before,
+.team-row-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100px; /* Width of the fade effect - adjust as needed */
+    z-index: 2;   /* Ensure it's above the scrolling row but below other page elements if any */
+    pointer-events: none; /* Allows clicks to pass through to the cards */
+}
+
+.team-row-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right, var(--light-bg, #F7F7FC) 5%, transparent 50%);}
+
+.team-row-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left, var(--light-bg, #F7F7FC) 5%, transparent 50%);
+}
+
+
+.team-row {
+    display: flex;
+    gap: 25px;
+    padding: 5px;
+    width: max-content;
+    will-change: transform;
+}
+
+.team-card {
+    background-color: var(--card-bg-color-team, #FFFFFF);
+    border: 2px solid var(--card-border-color-team, #000000);
+    border-radius: var(--border-radius-card-team, 24px);
+    padding: 20px;
+    width: 300px; /* Adjust card width as needed */
+    flex-shrink: 0; /* Prevent cards from shrinking */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.profile-pic-container {
+    width: var(--profile-pic-area-size);
+    height: var(--profile-pic-area-size);
+    /* background-color: var(--lime-green-profile); -- REMOVED, shape is now child elements */
+    /* border-radius: 20px; -- REMOVED, rounding comes from child shapes */
+    display: flex;         /* This will center the profile-img */
+    align-items: center;
+    justify-content: center;
+    position: relative;    /* Crucial for positioning the absolute shape bars */
+}
+
+.shape-bar {
+    position: absolute;
+    top: 50%; /* Center point for rotation */
+    left: 50%;/* Center point for rotation */
+    background-color: var(--lime-green-profile);
+    width: var(--shape-bar-length-percent);   /* e.g., 95% of 80px = 76px */
+    height: var(--shape-bar-thickness-percent); /* e.g., 48% of 80px = 38.4px */
+    
+    /* Dynamically calculate border-radius to be half of the height for perfectly round ends */
+    /* CSS calc() can't easily access another var's percentage value to divide.
+       So, set a sufficiently large px value or a percentage that works well.
+       Given thickness is ~38px, radius of ~19px or more makes ends round.
+    */
+    border-radius: 25px; /* Adjust this to make ends perfectly round (should be >= height/2) */
+}
+
+.shape-bar-1 {
+    /* Translate by -50% of ITS OWN width/height to align its center with parent's center, then rotate */
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.shape-bar-2 {
+    transform: translate(-50%, -50%) rotate(-45deg); /* Or rotate(135deg) for the same visual */
+}
+
+.profile-img {
+    width: var(--profile-img-actual-size);
+    height: var(--profile-img-actual-size);
+    border-radius: 50%; /* Makes it circular */
+    object-fit: cover;  /* Ensures image covers the area well */
+    border: 2px solid var(--card-bg-color); /* The white border around the photo */
+    position: relative; /* Ensure it's in the normal flow for flex centering */
+    z-index: 1;         /* To make sure it sits on top of the .shape-bar elements */
+}
+.linkedin-icon {
+    width: 36px;
+    height: 36px;
+    background-color: var(--text-dark, #1E1E2F);
+    color: var(--card-bg-color-team, #FFFFFF);
+    border-radius: var(--border-radius-icon, 50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0; /* Prevent icon from shrinking */
+}
+.linkedin-icon svg {
+    width: 18px;
+    height: 18px;
+}
+.linkedin-icon:hover {
+    background-color: #333;
+}
+
+.member-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark, #1E1E2F);
+    margin-top: 0;
+    margin-bottom: 4px;
+}
+
+.member-title {
+    font-size: 14px;
+    color: var(--text-muted, #5A5A6D);
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.card-divider {
+    border: none;
+    border-top: 1px solid #E0E0E6;
+    margin: 0 0 15px 0;
+}
+
+.member-description {
+    font-size: 14px;
+    color: var(--text-dark, #1E1E2F);
+    line-height: 1.6;
+    margin: 0;
+    flex-grow: 1;
+}
+
+@media (max-width: 768px) {
+    .team-card {
+        width: 260px;
+    }
+    .team-row {
+        gap: 15px;
+    }
+    /* Adjust profile pic vars if needed for smaller screens */
+    /*
+    :root {
+        --profile-pic-area-size: 70px;
+        --profile-img-actual-size: 50px;
+    }
+    */
+    .member-name { font-size: 17px; }
+    .member-title, .member-description { font-size: 13px; }
+    .linkedin-icon { width: 32px; height: 32px; }
+    .linkedin-icon svg { width: 16px; height: 16px; }
 }
 
 @media (max-width: 600px) {

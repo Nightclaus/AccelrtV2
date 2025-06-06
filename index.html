@@ -28,6 +28,209 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const teamSection = document.querySelector('.team-section');
+    if (!teamSection) {
+        console.warn('Team section not found.');
+        return;
+    }
+
+    const rowsToProcess = [
+        { element: teamSection.querySelector('.team-row.top-row'), isTopRow: true },
+        { element: teamSection.querySelector('.team-row.bottom-row'), isTopRow: false }
+    ];
+
+    const pageScrollAnimationDistance = 250; 
+
+    rowsToProcess.forEach(rowConfig => {
+        if (!rowConfig.element) {
+            console.warn(`Team row element not found for ${rowConfig.isTopRow ? 'top' : 'bottom'} row.`);
+            return;
+        }
+        setupInteractiveRow(rowConfig.element, rowConfig.isTopRow);
+    });
+
+    function setupInteractiveRow(rowElement, isTopRow) {
+        const rowWrapper = rowElement.parentElement;
+        let originalCards = Array.from(rowElement.children);
+
+        if (originalCards.length === 0) {
+            console.warn(`No cards found in ${isTopRow ? 'top' : 'bottom'} row.`);
+            return;
+        }
+
+        const clonesStart = originalCards.map(card => card.cloneNode(true));
+        const clonesEnd = originalCards.map(card => card.cloneNode(true));
+
+        clonesEnd.forEach(clone => rowElement.appendChild(clone)); 
+        clonesStart.slice().reverse().forEach(clone => rowElement.prepend(clone)); 
+        
+        let cardStyle = window.getComputedStyle(originalCards[0]);
+        let gapValue = parseFloat(window.getComputedStyle(rowElement).gap || 0);
+        
+        let originalContentWidth = 0;
+        originalCards.forEach((card, index) => {
+            originalContentWidth += card.offsetWidth;
+            if (index < originalCards.length - 1) {
+                originalContentWidth += gapValue;
+            }
+        });
+        
+        let initialTranslateX = -originalContentWidth;
+        
+        let isDragging = false;
+        let startPointerX;         
+        let currentDragOffset = 0;   
+        let accumulatedDragOffset = 0; 
+        let pageScrollOffset = 0;    
+        
+        rowElement.style.transform = `translateX(${initialTranslateX}px)`;
+        
+        function onDragStart(e) {
+            isDragging = true;
+            startPointerX = e.pageX || e.touches[0].pageX;
+            currentDragOffset = 0; 
+            rowWrapper.classList.add('is-dragging');
+            rowElement.style.transition = 'none'; 
+        }
+
+        function onDragMove(e) {
+            if (!isDragging) return;
+            // No e.preventDefault() here for mouse, but keep for touch if needed.
+            // For touch, e.preventDefault() was in the previous touchmove.
+
+            const currentPointerX = e.pageX || (e.touches && e.touches[0].pageX);
+            if (currentPointerX === undefined) return; // Event might not have pageX (e.g. some wheel events)
+
+            currentDragOffset = currentPointerX - startPointerX;
+            applyTransformations();
+        }
+
+        function onDragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+            rowWrapper.classList.remove('is-dragging');
+            accumulatedDragOffset += currentDragOffset; 
+            currentDragOffset = 0; 
+            applyTransformations(); 
+        }
+
+        rowWrapper.addEventListener('mousedown', onDragStart);
+        rowWrapper.addEventListener('touchstart', (e) => {
+            // For touchstart, also prevent default if we intend to handle the scroll
+            e.preventDefault(); 
+            onDragStart(e);
+        }, { passive: false });
+
+
+        document.addEventListener('mousemove', onDragMove); 
+        document.addEventListener('touchmove', (e) => {
+             if (!isDragging) return;
+             e.preventDefault(); // Prevent page scroll during touch drag
+             onDragMove(e);
+        }, { passive: false });
+
+
+        document.addEventListener('mouseup', onDragEnd);
+        document.addEventListener('touchend', onDragEnd);
+        rowWrapper.addEventListener('mouseleave', () => { 
+            if (isDragging) onDragEnd();
+        });
+
+        // --- START: Wheel Event for Trackpad/Mouse Wheel Horizontal Scroll ---
+        rowWrapper.addEventListener('wheel', (e) => {
+            // e.deltaX is the amount scrolled horizontally.
+            // Positive deltaX means scrolling right (content moves left).
+            // Negative deltaX means scrolling left (content moves right).
+
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { // Prioritize horizontal scroll
+                e.preventDefault(); // Prevent default vertical page scroll if horizontal is dominant
+
+                // Adjust accumulatedDragOffset directly.
+                // The direction of deltaX is often opposite to how you'd intuitively apply drag.
+                // If deltaX is positive (scrolling right on trackpad), content should move left (negative transform).
+                accumulatedDragOffset -= e.deltaX * 0.5; // Multiply by a sensitivity factor (e.g., 0.5 or 1)
+
+                // No need to set isDragging for wheel, it's a discrete event series
+                rowElement.style.transition = 'none'; // Ensure direct response
+                applyTransformations();
+            }
+            // Optional: you might want a very slight transition after wheel events end for smoothness
+            // This would require a timeout to re-enable transition.
+            // setTimeout(() => {
+            //    if (!isDragging) rowElement.style.transition = 'transform 0.1s ease-out';
+            // }, 150);
+
+        }, { passive: false }); // passive: false to allow preventDefault
+        // --- END: Wheel Event ---
+
+
+        function handlePageScrollAnimation() {
+            const rect = teamSection.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            let progress = 0;
+
+            const animationStartPoint = viewportHeight;
+            const animationEndPoint = -rect.height;
+
+            if (rect.top <= animationStartPoint && rect.bottom >= 0) {
+                const currentScrollInAnimationRange = animationStartPoint - rect.top;
+                const totalAnimationScrollRange = animationStartPoint - animationEndPoint;
+                progress = currentScrollInAnimationRange / totalAnimationScrollRange;
+                progress = Math.max(0, Math.min(1, progress));
+            } else if (rect.top > animationStartPoint) {
+                progress = 0;
+            } else {
+                progress = 1;
+            }
+
+            const direction = isTopRow ? 1 : -1;
+            pageScrollOffset = (progress - 0.5) * pageScrollAnimationDistance * direction;
+            
+            if (!isDragging) {
+                applyTransformations();
+            }
+        }
+        
+        function applyTransformations() {
+            let combinedTranslateX = initialTranslateX + pageScrollOffset + accumulatedDragOffset + currentDragOffset;
+
+            if (combinedTranslateX > initialTranslateX + originalContentWidth / 2 ) { 
+                accumulatedDragOffset -= originalContentWidth; 
+                combinedTranslateX -= originalContentWidth;    
+            }
+            else if (combinedTranslateX < initialTranslateX - originalContentWidth / 2) {
+                accumulatedDragOffset += originalContentWidth; 
+                combinedTranslateX += originalContentWidth;    
+            }
+            
+            rowElement.style.transform = `translateX(${combinedTranslateX}px)`;
+        }
+        
+        const observerOptions = {
+            rootMargin: '0px',
+            threshold: 0.01,
+        };
+
+        const teamObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.target === teamSection) { 
+                    if (entry.isIntersecting) {
+                        window.addEventListener('scroll', handlePageScrollAnimation, { passive: true });
+                        handlePageScrollAnimation(); 
+                    } else {
+                        window.removeEventListener('scroll', handlePageScrollAnimation);
+                    }
+                }
+            });
+        }, observerOptions);
+
+        teamObserver.observe(teamSection); 
+        handlePageScrollAnimation();
+    } 
+});
+</script>
 <body>
     <!-- HERO SECTION -->
     <section class="hero-section">
@@ -186,96 +389,274 @@
         </div>
     </section>
 
+    <!-- TEAM SECTION -->
+    <section class="team-section">
+        <div class="container"> <!-- Optional: If you use a global container for width -->
+            <!-- You can add a section title here if needed -->
+            <!-- <h2 class="section-title">Meet Our Team</h2> -->
+
+            <div class="team-row-wrapper">
+                <div class="team-row top-row">
+                    <!-- Team Member Card 1 -->
+                    <div class="team-card">
+                        <div class="card-header">
+                            <div class="profile-pic-container">
+                                <div class="shape-bar shape-bar-1"></div>
+                                <div class="shape-bar shape-bar-2"></div>
+                                <img src="placeholder-person1.jpg" alt="John Smith" class="profile-img">
+                            </div>
+                            <a href="https://www.linkedin.com/in/williamhgates" target="_blank" class="linkedin-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                            </a>
+                        </div>
+                        <h3 class="member-name">John Smith</h3>
+                        <p class="member-title">CEO and Founder</p>
+                        <hr class="card-divider">
+                        <p class="member-description">
+                            10+ years of experience in digital marketing. Expertise in SEO, PPC, and content strategy.
+                        </p>
+                    </div>
+
+                    <!-- Team Member Card 2 -->
+                    <div class="team-card">
+                        <div class="card-header">
+                            <div class="profile-pic-container">
+                                <div class="shape-bar shape-bar-1"></div>
+                                <div class="shape-bar shape-bar-2"></div>
+                                <img src="placeholder-person2.jpg" alt="Jane Doe" class="profile-img">
+                            </div>
+                            <a href="https://www.linkedin.com/in/satyanadella" target="_blank" class="linkedin-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                            </a>
+                        </div>
+                        <h3 class="member-name">Jane Doe</h3>
+                        <p class="member-title">Director of Operations</p>
+                        <hr class="card-divider">
+                        <p class="member-description">
+                            7+ years of experience in project management and team leadership. Strong organizational and communication skills.
+                        </p>
+                    </div>
+
+                    <!-- Team Member Card 3 -->
+                    <div class="team-card">
+                        <div class="card-header">
+                            <div class="profile-pic-container">
+                                <div class="shape-bar shape-bar-1"></div>
+                                <div class="shape-bar shape-bar-2"></div>
+                                <img src="placeholder-person3.jpg" alt="Michael Brown" class="profile-img">
+                            </div>
+                            <a href="https://www.linkedin.com/in/sundarpichai" target="_blank" class="linkedin-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                            </a>
+                        </div>
+                        <h3 class="member-name">Michael Brown</h3>
+                        <p class="member-title">Senior SEO Specialist</p>
+                        <hr class="card-divider">
+                        <p class="member-description">
+                            5+ years of experience in SEO and content creation. Proficient in keyword research and on-page optimization.
+                        </p>
+                    </div>
+
+                    <!-- Team Member Card 4 -->
+                    <div class="team-card">
+                        <div class="card-header">
+                            <div class="profile-pic-container">
+                                <div class="shape-bar shape-bar-1"></div>
+                                <div class="shape-bar shape-bar-2"></div>
+                                <img src="placeholder-person-extra1.jpg" alt="Alice Green" class="profile-img">
+                            </div>
+                            <a href="https://www.linkedin.com/in/example1" target="_blank" class="linkedin-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                            </a>
+                        </div>
+                        <h3 class="member-name">Alice Green</h3>
+                        <p class="member-title">Lead Designer</p>
+                        <hr class="card-divider">
+                        <p class="member-description">
+                            Creative mind with a passion for UI/UX and branding.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="team-row-wrapper">
+                <div class="team-row bottom-row">
+                    <!-- Team Member Card 4 -->
+                    <div class="team-card">
+                        <div class="card-header">
+                            <div class="profile-pic-container">
+                                <div class="shape-bar shape-bar-1"></div>
+                                <div class="shape-bar shape-bar-2"></div>
+                                <img src="placeholder-person4.jpg" alt="Emily Johnson" class="profile-img">
+                            </div>
+                            <a href="https://www.linkedin.com/in/example2" target="_blank" class="linkedin-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                            </a>
+                        </div>
+                        <h3 class="member-name">Emily Johnson</h3>
+                        <p class="member-title">PPC Manager</p>
+                        <hr class="card-divider">
+                        <p class="member-description">
+                            3+ years of experience in paid search advertising. Skilled in campaign management and performance analysis.
+                        </p>
+                    </div>
+
+                    <!-- Team Member Card 5 -->
+                    <div class="team-card">
+                        <div class="card-header">
+                            <div class="profile-pic-container">
+                                <div class="shape-bar shape-bar-1"></div>
+                                <div class="shape-bar shape-bar-2"></div>
+                                <img src="placeholder-person5.jpg" alt="Brian Williams" class="profile-img">
+                            </div>
+                            <a href="https://www.linkedin.com/in/example3" target="_blank" class="linkedin-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                            </a>
+                        </div>
+                        <h3 class="member-name">Brian Williams</h3>
+                        <p class="member-title">Social Media Specialist</p>
+                        <hr class="card-divider">
+                        <p class="member-description">
+                            4+ years of experience in social media marketing. Proficient in creating and scheduling content.
+                        </p>
+                    </div>
+
+                    <!-- Team Member Card 6 -->
+                    <div class="team-card">
+                        <div class="card-header">
+                            <div class="profile-pic-container">
+                                <div class="shape-bar shape-bar-1"></div>
+                                <div class="shape-bar shape-bar-2"></div>
+                                <img src="placeholder-person6.jpg" alt="Sarah Kim" class="profile-img">
+                            </div>
+                            <a href="https://www.linkedin.com/in/example4" target="_blank" class="linkedin-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                            </a>
+                        </div>
+                        <h3 class="member-name">Sarah Kim</h3>
+                        <p class="member-title">Content Creator</p>
+                        <hr class="card-divider">
+                        <p class="member-description">
+                            2+ years of experience in writing and editing. Skilled in creating compelling, SEO-optimized content.
+                        </p>
+                    </div>
+
+                    <!-- Team Member Card 7 -->
+                    <div class="team-card">
+                        <div class="card-header">
+                            <div class="profile-pic-container">
+                                <div class="shape-bar shape-bar-1"></div>
+                                <div class="shape-bar shape-bar-2"></div>
+                                <img src="placeholder-person-extra2.jpg" alt="Extra Person 2" class="profile-img">
+                            </div>
+                            <a href="https://www.linkedin.com/in/example5" target="_blank" class="linkedin-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                            </a>
+                        </div>
+                        <h3 class="member-name">David Lee</h3>
+                        <p class="member-title">Data Analyst</p>
+                        <hr class="card-divider">
+                        <p class="member-description">
+                            Expert in data visualization and turning numbers into actionable insights.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- FAQ SECTION -->
-    <div class="process-section-container">
-        <!-- Reuse -->
-        <section class="process-header">
-            <h2 class="services-intro big-button-heading process-title-tag">Frequently Asked Questions</h2>
-            <!-- <p class="services-intro services-intro-description">Step-by-Step Guide to Achieving<br>Your Business Goals</p> -->
-        </section>
+    <div class="faq-section light-theme" >
+        <div class="faq-section-container light-theme">
+            <!-- Reuse -->
+            <section class="process-header">
+                <h2 class="services-intro big-button-heading process-title-tag">Frequently Asked Questions</h2>
+                <!-- <p class="services-intro services-intro-description">Step-by-Step Guide to Achieving<br>Your Business Goals</p> -->
+            </section>
 
-        <div class="accordion">
-            <div class="accordion-item active"> <!-- First item starts active -->
-                <div class="accordion-header">
-                    <div class="accordion-title-area">
-                        <span class="accordion-number">01</span>
-                        <span class="accordion-title">Consultation</span>
+            <div class="accordion">
+                <div class="accordion-item active"> <!-- First item starts active -->
+                    <div class="accordion-header">
+                        <div class="accordion-title-area">
+                            <span class="accordion-number">01</span>
+                            <span class="accordion-title">Consultation</span>
+                        </div>
+                        <span class="accordion-icon">-</span>
                     </div>
-                    <span class="accordion-icon">-</span>
-                </div>
-                <div class="accordion-content">
-                    <p>During the initial consultation, we will discuss your business goals and objectives, target audience, and current marketing efforts. This will allow us to understand your needs and tailor our services to best fit your requirements.</p>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title-area">
-                        <span class="accordion-number">02</span>
-                        <span class="accordion-title">Research and Strategy Development</span>
+                    <div class="accordion-content">
+                        <p>During the initial consultation, we will discuss your business goals and objectives, target audience, and current marketing efforts. This will allow us to understand your needs and tailor our services to best fit your requirements.</p>
                     </div>
-                    <span class="accordion-icon">+</span>
                 </div>
-                <div class="accordion-content">
-                    <p>Based on our consultation, we conduct thorough research into your industry, competitors, and target market. We then develop a comprehensive digital marketing strategy outlining the best channels and tactics to achieve your objectives.</p>
-                </div>
-            </div>
 
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title-area">
-                        <span class="accordion-number">03</span>
-                        <span class="accordion-title">Implementation</span>
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <div class="accordion-title-area">
+                            <span class="accordion-number">02</span>
+                            <span class="accordion-title">Research and Strategy Development</span>
+                        </div>
+                        <span class="accordion-icon">+</span>
                     </div>
-                    <span class="accordion-icon">+</span>
-                </div>
-                <div class="accordion-content">
-                    <p>Our skilled team puts the strategy into action. This includes setting up campaigns, creating content, developing websites or landing pages, and configuring tracking and analytics to measure performance effectively.</p>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title-area">
-                        <span class="accordion-number">04</span>
-                        <span class="accordion-title">Monitoring and Optimization</span>
+                    <div class="accordion-content">
+                        <p>Based on our consultation, we conduct thorough research into your industry, competitors, and target market. We then develop a comprehensive digital marketing strategy outlining the best channels and tactics to achieve your objectives.</p>
                     </div>
-                    <span class="accordion-icon">+</span>
                 </div>
-                <div class="accordion-content">
-                    <p>We continuously monitor campaign performance, analyzing data to identify areas for improvement. Regular optimizations are made to ensure your marketing efforts are delivering the best possible results and ROI.</p>
-                </div>
-            </div>
 
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title-area">
-                        <span class="accordion-number">05</span>
-                        <span class="accordion-title">Reporting and Communication</span>
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <div class="accordion-title-area">
+                            <span class="accordion-number">03</span>
+                            <span class="accordion-title">Implementation</span>
+                        </div>
+                        <span class="accordion-icon">+</span>
                     </div>
-                    <span class="accordion-icon">+</span>
-                </div>
-                <div class="accordion-content">
-                    <p>You'll receive regular, transparent reports detailing campaign progress, key metrics, and insights. We maintain open communication to keep you informed and involved every step of the way.</p>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <div class="accordion-title-area">
-                        <span class="accordion-number">06</span>
-                        <span class="accordion-title">Continual Improvement</span>
+                    <div class="accordion-content">
+                        <p>Our skilled team puts the strategy into action. This includes setting up campaigns, creating content, developing websites or landing pages, and configuring tracking and analytics to measure performance effectively.</p>
                     </div>
-                    <span class="accordion-icon">+</span>
                 </div>
-                <div class="accordion-content">
-                    <p>Digital marketing is an evolving field. We stay updated with the latest trends and algorithm changes, continually refining our strategies to ensure long-term success and growth for your business.</p>
-                </div>
-            </div>
 
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <div class="accordion-title-area">
+                            <span class="accordion-number">04</span>
+                            <span class="accordion-title">Monitoring and Optimization</span>
+                        </div>
+                        <span class="accordion-icon">+</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>We continuously monitor campaign performance, analyzing data to identify areas for improvement. Regular optimizations are made to ensure your marketing efforts are delivering the best possible results and ROI.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <div class="accordion-title-area">
+                            <span class="accordion-number">05</span>
+                            <span class="accordion-title">Reporting and Communication</span>
+                        </div>
+                        <span class="accordion-icon">+</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>You'll receive regular, transparent reports detailing campaign progress, key metrics, and insights. We maintain open communication to keep you informed and involved every step of the way.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <div class="accordion-title-area">
+                            <span class="accordion-number">06</span>
+                            <span class="accordion-title">Continual Improvement</span>
+                        </div>
+                        <span class="accordion-icon">+</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>Digital marketing is an evolving field. We stay updated with the latest trends and algorithm changes, continually refining our strategies to ensure long-term success and growth for your business.</p>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
-
 
 </body>
 <script>

@@ -107,22 +107,66 @@
             margin: 40px 0;
             color: #6c757d;
         }
+
         .dynamic-form-section {
             border: 1px solid #e9ecef;
             border-radius: 6px;
-            padding: 20px;
-            margin-bottom: 25px;
+            padding: 0; 
+            margin-bottom: 15px; 
             background-color: #f8f9fa;
+            overflow: hidden; 
         }
-        .dynamic-form-section h3 {
+
+        .dynamic-form-section h3 { /*clickable header */
             margin-top: 0;
-            margin-bottom: 20px;
+            margin-bottom: 0; /* No margin when collapsed */
             color: #007bff;
-            border-bottom: 1px solid #dee2e6;
-            padding-bottom: 10px;
-            font-size: 1.3em;
+            padding: 15px 20px;
+            font-size: 1.2em; 
+            cursor: pointer;
+            position: relative; /* For the toggle icon */
+            user-select: none; /* Prevent text selection on click */
+            border-bottom: 1px solid #dee2e6; /* Separator when open */
+            transition: background-color 0.2s ease;
         }
-        .dynamic-form-section h4 { /* For array item titles */
+        .dynamic-form-section h3:hover {
+            background-color: #e9ecef;
+        }
+
+        .dynamic-form-section h3::after { 
+            content: '▼'; 
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8em;
+            transition: transform 0.3s ease-out;
+        }
+
+        .dynamic-form-section.open h3 {
+            background-color: #e2f1ff;
+            border-bottom-color: #cce4ff;
+        }
+
+        .dynamic-form-section.open h3::after {
+            transform: translateY(-50%) rotate(180deg); /*he*/
+        }
+
+        .section-content {
+            padding: 0 20px 20px 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding-top 0.4s ease-out, padding-bottom 0.4s ease-out;
+            border-top: none; 
+        }
+
+        .dynamic-form-section.open .section-content {
+            max-height: 5000px;
+            padding-top: 20px; 
+        }
+
+
+        .dynamic-form-section h4 {
             margin-top: 15px;
             margin-bottom: 10px;
             color: #343a40;
@@ -244,37 +288,38 @@
         });
 
         function createFieldElement(id, value, originalType) {
-            let element;
-            if (originalType === 'string' && String(value).length > 70) { // Use textarea for longer strings
-                element = document.createElement('textarea');
-                element.className = 'dynamic-field';
-                element.rows = Math.max(3, Math.ceil(String(value).length / 60));
-            } else if (originalType === 'number') {
-                element = document.createElement('input');
-                element.type = 'number';
-                element.step = 'any'; // Allow decimals
-            } else if (originalType === 'boolean') {
-                element = document.createElement('select');
-                const optionTrue = document.createElement('option');
-                optionTrue.value = 'true';
-                optionTrue.textContent = 'True';
-                const optionFalse = document.createElement('option');
-                optionFalse.value = 'false';
-                optionFalse.textContent = 'False';
-                element.appendChild(optionTrue);
-                element.appendChild(optionFalse);
-            }
-            else { // Default to text input for strings or other types
-                element = document.createElement('input');
-                element.type = 'text';
-            }
-            element.id = id;
-            element.name = id;
-            element.value = value; // For select, this sets the selected option if value matches
-            return element;
-        }
+    // ... (this function remains the same as your last version) ...
+    let element;
+    if (originalType === 'string' && String(value).length > 70) { 
+        element = document.createElement('textarea');
+        element.className = 'dynamic-field';
+        element.rows = Math.max(3, Math.ceil(String(value).length / 60));
+    } else if (originalType === 'number') {
+        element = document.createElement('input');
+        element.type = 'number';
+        element.step = 'any'; 
+    } else if (originalType === 'boolean') {
+        element = document.createElement('select');
+        const optionTrue = document.createElement('option');
+        optionTrue.value = 'true';
+        optionTrue.textContent = 'True';
+        const optionFalse = document.createElement('option');
+        optionFalse.value = 'false';
+        optionFalse.textContent = 'False';
+        element.appendChild(optionTrue);
+        element.appendChild(optionFalse);
+    }
+    else { 
+        element = document.createElement('input');
+        element.type = 'text';
+    }
+    element.id = id;
+    element.name = id;
+    element.value = value; 
+    return element;
+}
         
-        function buildFormField(key, value, prefix, parentDiv) {
+        function buildFormField(key, value, prefix, parentContentDiv) { // parent is now sectionContentDiv
             const fieldId = prefix ? `${prefix}-${key}` : key;
             const originalType = typeof value;
 
@@ -287,10 +332,10 @@
             fieldDiv.appendChild(label);
 
             if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                // Recursively build for nested objects (1 more level)
                 const nestedSectionDiv = document.createElement('div');
                 nestedSectionDiv.style.paddingLeft = '20px';
                 nestedSectionDiv.style.borderLeft = '2px solid #eee';
+                nestedSectionDiv.style.marginTop = '10px';
                 for(const nestedKey in value) {
                     if (Object.hasOwnProperty.call(value, nestedKey)) {
                         buildFormField(nestedKey, value[nestedKey], fieldId, nestedSectionDiv);
@@ -299,30 +344,28 @@
                 fieldDiv.appendChild(nestedSectionDiv);
 
             } else if (Array.isArray(value)) {
-                 // For arrays, just show raw JSON in a disabled textarea
                 const textarea = document.createElement('textarea');
                 textarea.id = fieldId;
                 textarea.name = fieldId;
                 textarea.value = JSON.stringify(value, null, 2);
                 textarea.className = 'dynamic-field';
-                textarea.rows = Math.min(10, value.length + 1); // Adjust rows based on array length
+                textarea.rows = Math.min(10, value.length + 1); 
                 textarea.disabled = true;
                 const notice = document.createElement('small');
                 notice.textContent = '(Array data - edit via Raw JSON editor or ensure JSON structure for array items)';
                 fieldDiv.appendChild(textarea);
                 fieldDiv.appendChild(notice);
 
-            } else { // Simple type: string, number, boolean
+            } else { 
                 const inputElement = createFieldElement(fieldId, value, originalType);
                 fieldDiv.appendChild(inputElement);
             }
-            parentDiv.appendChild(fieldDiv);
+            parentContentDiv.appendChild(fieldDiv); // Append to sectionContentDiv
         }
-
 
         function buildDynamicForm(data) {
             dynamicFormContainer.innerHTML = ''; 
-            console.log("Building form, clearing container.");
+            console.log("Building form with collapsible sections, clearing container.");
 
             for (const sectionKey in data) {
                 if (Object.hasOwnProperty.call(data, sectionKey)) {
@@ -330,83 +373,94 @@
                     const sectionValue = data[sectionKey];
                     
                     const sectionDiv = document.createElement('div');
-                    sectionDiv.className = 'dynamic-form-section';
-                    sectionDiv.setAttribute('data-section-key', sectionKey); // Store original key
+                    sectionDiv.className = 'dynamic-form-section'; // Initially collapsed (no 'open' class)
+                    sectionDiv.setAttribute('data-section-key', sectionKey); 
                     
-                    const sectionTitle = document.createElement('h3');
-                    sectionTitle.textContent = capitalizeFirstLetter(sectionKey.replace(/([A-Z])/g, ' $1'));
-                    sectionDiv.appendChild(sectionTitle);
+                    const sectionHeader = document.createElement('h3'); // This is now the clickable part
+                    sectionHeader.textContent = capitalizeFirstLetter(sectionKey.replace(/([A-Z])/g, ' $1'));
+                    sectionDiv.appendChild(sectionHeader);
+
+                    // Create a new div to hold the actual form fields for this section
+                    const sectionContentDiv = document.createElement('div');
+                    sectionContentDiv.className = 'section-content'; // Initially hidden by CSS (max-height: 0)
+                    sectionDiv.appendChild(sectionContentDiv);
+
+                    // Add click listener to the header to toggle the content
+                    sectionHeader.addEventListener('click', function() {
+                        sectionDiv.classList.toggle('open');
+                        if (sectionDiv.classList.contains('open')) {
+                            // sectionContentDiv.style.maxHeight = sectionContentDiv.scrollHeight + "px"; // More precise
+                            // Simpler approach: CSS handles max-height transition to a large value
+                        } else {
+                            // sectionContentDiv.style.maxHeight = null; // Let CSS handle collapse
+                        }
+                    });
+
 
                     if (typeof sectionValue === 'object' && sectionValue !== null && !Array.isArray(sectionValue)) {
-                        // Second layer - object of fields
                         for (const fieldKey in sectionValue) {
                             if (Object.hasOwnProperty.call(sectionValue, fieldKey)) {
-                                buildFormField(fieldKey, sectionValue[fieldKey], sectionKey, sectionDiv);
+                                // Pass sectionContentDiv as the parent for fields
+                                buildFormField(fieldKey, sectionValue[fieldKey], sectionKey, sectionContentDiv);
                             }
                         }
                     } else if (Array.isArray(sectionValue)) {
-                        // Handle top-level arrays (e.g., services, teamMembers, faqItems)
-                        // This part will render fields for each object in the array
                         sectionValue.forEach((item, index) => {
                             if (typeof item === 'object' && item !== null) {
                                 const itemTitle = document.createElement('h4');
-                                itemTitle.textContent = `${capitalizeFirstLetter(sectionKey.slice(0,-1) || 'Item')} ${index + 1}`; // e.g. Service 1
-                                sectionDiv.appendChild(itemTitle);
+                                itemTitle.textContent = `${capitalizeFirstLetter(sectionKey.slice(0,-1) || 'Item')} ${index + 1}`; 
+                                sectionContentDiv.appendChild(itemTitle); // Append to content div
                                 
                                 const itemPrefix = `${sectionKey}-${index}`;
                                 for (const itemKey in item) {
                                     if (Object.hasOwnProperty.call(item, itemKey)) {
-                                        buildFormField(itemKey, item[itemKey], itemPrefix, sectionDiv);
+                                        buildFormField(itemKey, item[itemKey], itemPrefix, sectionContentDiv);
                                     }
                                 }
                             } else {
-                                // Array of simple values - show as one disabled field
-                                buildFormField(`item-${index}`, item, sectionKey, sectionDiv);
-                                const inputEl = sectionDiv.querySelector(`#${sectionKey}-item-${index}`);
-                                if (inputEl) inputEl.disabled = true;
+                                buildFormField(`item-${index}`, item, sectionKey, sectionContentDiv);
+                                const fieldWrapper = sectionContentDiv.querySelector(`.form-field:has(#${sectionKey}-item-${index})`);
+                                if (fieldWrapper) {
+                                const inputEl = fieldWrapper.querySelector(`#${sectionKey}-item-${index}`);
+                                if(inputEl) inputEl.disabled = true;
                                 const notice = document.createElement('small'); notice.textContent = '(Simple array item - edit via Raw JSON)';
-                                sectionDiv.querySelector('.form-field:last-child').appendChild(notice);
-
+                                fieldWrapper.appendChild(notice);
+                                }
                             }
                         });
                     } else {
-                        // Top-level simple value (string, number, boolean)
-                        buildFormField(sectionKey, sectionValue, '', sectionDiv); // No prefix for top-level simple field
+                        buildFormField(sectionKey, sectionValue, '', sectionContentDiv);
                     }
                     dynamicFormContainer.appendChild(sectionDiv);
-                    console.log("Appended section to form:", sectionKey);
+                    console.log("Appended collapsible section to form:", sectionKey);
                 }
             }
-            console.log("Finished building dynamic form HTML structure.");
+            console.log("Finished building dynamic form HTML structure with collapsible sections.");
         }
-
 
         function recompileFormData() {
             if (!currentFetchedData) return null;
-            
-            // Start with a deep clone of the original structure to preserve types and uneditable parts
             const updatedData = JSON.parse(JSON.stringify(currentFetchedData)); 
-
             console.log("Recompiling form data. Original structure:", JSON.stringify(updatedData).substring(0,200));
 
             const sections = dynamicFormContainer.querySelectorAll('.dynamic-form-section');
             sections.forEach(sectionDiv => {
                 const sectionKey = sectionDiv.getAttribute('data-section-key');
-                if (!sectionKey || !Object.hasOwnProperty.call(updatedData, sectionKey)) {
-                    console.warn("Could not find original section key for form section:", sectionDiv);
+                const sectionContentDiv = sectionDiv.querySelector('.section-content'); // Get content wrapper
+                if (!sectionKey || !sectionContentDiv || !Object.hasOwnProperty.call(updatedData, sectionKey)) {
+                    console.warn("Could not find original section key or content for form section:", sectionDiv);
                     return;
                 }
                 
                 console.log("Recompiling section:", sectionKey);
 
                 if (Array.isArray(updatedData[sectionKey])) {
-                    // Recompile array of objects
                     updatedData[sectionKey].forEach((item, itemIndex) => {
                         if (typeof item === 'object' && item !== null) {
                             for (const itemKey in item) {
                                 if (Object.hasOwnProperty.call(item, itemKey)) {
                                     const fieldId = `${sectionKey}-${itemIndex}-${itemKey}`;
-                                    const inputElement = document.getElementById(fieldId);
+                                    const inputElement = sectionContentDiv.querySelector(`#${CSS.escape(fieldId)}`); // Use CSS.escape for IDs with hyphens/numbers
                                     if (inputElement && !inputElement.disabled) {
                                         const originalItemValue = item[itemKey];
                                         if (typeof originalItemValue === 'number') {
@@ -420,14 +474,12 @@
                                 }
                             }
                         }
-                        // Simple arrays are not made editable by this form builder
                     });
                 } else if (typeof updatedData[sectionKey] === 'object' && updatedData[sectionKey] !== null) {
-                    // Recompile object of fields (second layer)
                     for (const fieldKey in updatedData[sectionKey]) {
                         if (Object.hasOwnProperty.call(updatedData[sectionKey], fieldKey)) {
                             const fieldId = `${sectionKey}-${fieldKey}`;
-                            const inputElement = document.getElementById(fieldId);
+                            const inputElement = sectionContentDiv.querySelector(`#${CSS.escape(fieldId)}`);
                             if (inputElement && !inputElement.disabled) {
                                 const originalFieldValue = updatedData[sectionKey][fieldKey];
                                 if (typeof originalFieldValue === 'number') {
@@ -437,16 +489,12 @@
                                 } else {
                                     updatedData[sectionKey][fieldKey] = inputElement.value;
                                 }
-                            } else if (inputElement && inputElement.disabled){
-                                // If it was disabled (e.g. complex nested object), keep original value
-                                // This happens because updatedData is a clone of currentFetchedData
                             }
                         }
                     }
                 } else {
-                    // Recompile top-level simple value
-                    const fieldId = sectionKey; // No prefix
-                    const inputElement = document.getElementById(fieldId);
+                    const fieldId = sectionKey; 
+                    const inputElement = sectionContentDiv.querySelector(`#${CSS.escape(fieldId)}`);
                     if (inputElement && !inputElement.disabled) {
                         const originalValue = updatedData[sectionKey];
                         if (typeof originalValue === 'number') {
@@ -461,8 +509,7 @@
             });
             return updatedData;
         }
-
-
+        
         submitFormDataBtn.addEventListener('click', async function() {
             const recompiledData = recompileFormData();
             if (recompiledData) {

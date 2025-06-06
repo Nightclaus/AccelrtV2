@@ -137,6 +137,7 @@
             let dataToSubmit;
             try {
                 dataToSubmit = JSON.parse(jsonString);
+                console.log(dataToSubmit);
             } catch (error) {
                 displayStatus(`Invalid JSON: ${error.message}`, 'error');
                 return;

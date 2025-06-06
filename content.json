@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "title": "AccelRT — Content Loaded Dynamically",
+    "description": "Dynamic Content: AccelRT helps high school students across Australia explore technology.",
+    "ogTitle": "AccelRT (Dynamic) — Hackathons in Australia",
+    "ogDescription": "Dynamic Content: Empowering students to innovate.",
+    "twitterTitle": "AccelRT (Dynamic) — Aussie Tech",
+    "twitterDescription": "Dynamic Content: Innovation via events & mentorship."
+  },
+  "hero": {
+    "title": "Accel Dynamic",
+    "description": "Where Aussie ideas go full send - Loaded!",
+    "buttonText": "Join the Movement!"
+  },
+  "servicesIntro": {
+    "heading": "About Us - From JSON",
+    "description": "Loaded: Scrapyard Sydney provides a platform for high school students to explore technology, with support from industry leaders like Yubico, ensuring a secure and enriching experience. These services include JSON data:"
+  },
+  "services": [
+    { "titleTag1": "Service One JSON", "titleTag2": "Details Here", "learnMoreText": "Discover One" },
+    { "titleTag1": "Service Two JSON", "titleTag2": "More Info", "learnMoreText": "Discover Two" },
+    { "titleTag1": "Service Three JSON", "titleTag2": "From Data", "learnMoreText": "Discover Three" },
+    { "titleTag1": "Service Four JSON", "titleTag2": "Fetched Live", "learnMoreText": "Discover Four" },
+    { "titleTag1": "Service Five JSON", "titleTag2": "Dynamic Content", "learnMoreText": "Discover Five" },
+    { "titleTag1": "Service Six JSON", "titleTag2": "Sourced Data", "learnMoreText": "Discover Six" }
+  ],
+  "cta": {
+    "heading": "Let's Innovate Together",
+    "description": "JSON Loaded: Contact us today to learn more about how our digital marketing services can help your business grow.",
+    "buttonText": "Get Started with AccelRT!"
+  },
+  "teamHeader": {
+    "heading": "Our Team - Dynamic!",
+    "subheading": "Fetched: Connect with Us: Let's Discuss Your Digital Marketing Needs"
+  },
+  "teamMembers": [
+    { "name": "John Smith (JSON)", "title": "CEO & Founder (JSON)", "description": "JSON: 10+ years of experience in digital marketing. Expertise in SEO, PPC, and content strategy." },
+    { "name": "Jane Doe (JSON)", "title": "Director of Operations (JSON)", "description": "JSON: 7+ years of experience in project management and team leadership." },
+    { "name": "Michael Brown (JSON)", "title": "Senior SEO Specialist (JSON)", "description": "JSON: 5+ years of experience in SEO and content creation." },
+    { "name": "Alice Green (JSON)", "title": "Lead Designer (JSON)", "description": "JSON: Creative mind with a passion for UI/UX and branding." },
+    { "name": "Emily Johnson (JSON)", "title": "PPC Manager (JSON)", "description": "JSON: 3+ years of experience in paid search advertising." },
+    { "name": "Brian Williams (JSON)", "title": "Social Media Specialist (JSON)", "description": "JSON: 4+ years of experience in social media marketing." },
+    { "name": "Sarah Kim (JSON)", "title": "Content Creator (JSON)", "description": "JSON: 2+ years of experience in writing and editing." },
+    { "name": "David Lee (JSON)", "title": "Data Analyst (JSON)", "description": "JSON: Expert in data visualization and insights." }
+  ],
+  "faqHeader": {
+    "heading": "Our FAQ - From JSON"
+  },
+  "faqItems": [
+    { "number": "J1", "title": "Consultation via JSON", "description": "JSON Content: During the initial consultation, we will discuss your business goals and objectives..." },
+    { "number": "J2", "title": "Strategy via JSON", "description": "JSON Content: Based on our consultation, we conduct thorough research into your industry..." },
+    { "number": "J3", "title": "Implementation via JSON", "description": "JSON Content: Our skilled team puts the strategy into action. This includes setting up campaigns..." },
+    { "number": "J4", "title": "Monitoring via JSON", "description": "JSON Content: We continuously monitor campaign performance, analyzing data for improvement..." },
+    { "number": "J5", "title": "Reporting via JSON", "description": "JSON Content: You'll receive regular, transparent reports detailing campaign progress..." },
+    { "number": "J6", "title": "Improvement via JSON", "description": "JSON Content: Digital marketing is an evolving field. We stay updated with the latest trends..." }
+  ],
+  "contactUsHeader": {
+    "heading": "Contact Us - JSON",
+    "subheading": "JSON Loaded: Connect with Us: Let's Discuss Your Digital Marketing Needs"
+  },
+  "contactForm": {
+    "radioSayHi": "Say Hi (JSON)",
+    "radioGetQuote": "Get a Quote (JSON)",
+    "labelName": "Name (JSON)",
+    "labelEmail": "Email* (JSON)",
+    "labelMessage": "Message* (JSON)",
+    "buttonText": "Send Message (JSON)"
+  },
+  "footer": {
+    "copyrightText": "© 2025 AccelRT (JSON). All Rights Reserved."
+  }
+}

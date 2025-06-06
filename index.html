@@ -29,6 +29,8 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <script>
+// YOUR EXISTING SCRIPT BLOCK 1 - UNCHANGED (Team Carousel, Contact Form etc.)
+// ... (The long script block you provided for team carousel and contact form) ...
 document.addEventListener('DOMContentLoaded', function () {
     const teamSection = document.querySelector('.team-section');
     if (!teamSection) {
@@ -97,11 +99,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         function onDragMove(e) {
             if (!isDragging) return;
-            // No e.preventDefault() here for mouse, but keep for touch if needed.
-            // For touch, e.preventDefault() was in the previous touchmove.
 
             const currentPointerX = e.pageX || (e.touches && e.touches[0].pageX);
-            if (currentPointerX === undefined) return; // Event might not have pageX (e.g. some wheel events)
+            if (currentPointerX === undefined) return; 
 
             currentDragOffset = currentPointerX - startPointerX;
             applyTransformations();
@@ -118,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         rowWrapper.addEventListener('mousedown', onDragStart);
         rowWrapper.addEventListener('touchstart', (e) => {
-            // For touchstart, also prevent default if we intend to handle the scroll
             e.preventDefault(); 
             onDragStart(e);
         }, { passive: false });
@@ -127,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener('mousemove', onDragMove); 
         document.addEventListener('touchmove', (e) => {
              if (!isDragging) return;
-             e.preventDefault(); // Prevent page scroll during touch drag
+             e.preventDefault(); 
              onDragMove(e);
         }, { passive: false });
 
@@ -138,32 +137,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (isDragging) onDragEnd();
         });
 
-        // --- START: Wheel Event for Trackpad/Mouse Wheel Horizontal Scroll ---
         rowWrapper.addEventListener('wheel', (e) => {
-            // e.deltaX is the amount scrolled horizontally.
-            // Positive deltaX means scrolling right (content moves left).
-            // Negative deltaX means scrolling left (content moves right).
-
-            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { // Prioritize horizontal scroll
-                e.preventDefault(); // Prevent default vertical page scroll if horizontal is dominant
-
-                // Adjust accumulatedDragOffset directly.
-                // The direction of deltaX is often opposite to how you'd intuitively apply drag.
-                // If deltaX is positive (scrolling right on trackpad), content should move left (negative transform).
-                accumulatedDragOffset -= e.deltaX * 0.5; // Multiply by a sensitivity factor (e.g., 0.5 or 1)
-
-                // No need to set isDragging for wheel, it's a discrete event series
-                rowElement.style.transition = 'none'; // Ensure direct response
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { 
+                e.preventDefault(); 
+                accumulatedDragOffset -= e.deltaX * 0.5; 
+                rowElement.style.transition = 'none'; 
                 applyTransformations();
             }
-            // Optional: you might want a very slight transition after wheel events end for smoothness
-            // This would require a timeout to re-enable transition.
-            // setTimeout(() => {
-            //    if (!isDragging) rowElement.style.transition = 'transform 0.1s ease-out';
-            // }, 150);
-
-        }, { passive: false }); // passive: false to allow preventDefault
-        // --- END: Wheel Event ---
+        }, { passive: false }); 
 
 
         function handlePageScrollAnimation() {
@@ -235,50 +216,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (contactForm) {
         contactForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent default page reload
-
+            event.preventDefault(); 
             formStatusDiv.textContent = 'Sending...';
-            formStatusDiv.className = ''; // Reset classes
-
+            formStatusDiv.className = ''; 
             const formData = new FormData(contactForm);
             const data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
-
-            // For JSONPlaceholder, it expects userId, title, body for a 'post'
-            // We'll map our form data to something it might understand or just send our structure
+            formData.forEach((value, key) => { data[key] = value; });
             const postData = {
-                userId: 1, // Example user ID
+                userId: 1, 
                 title: `Contact Form Submission from ${data.name || 'Anonymous'}`,
                 body: `Type: ${data.inquiryType}\nEmail: ${data.email}\nMessage: ${data.message}`,
-                formData: data // Include original form data as well
+                formData: data 
             };
-
             fetch('https://jsonplaceholder.typicode.com/posts', {
                 method: 'POST',
                 body: JSON.stringify(postData),
-                headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                },
+                headers: { 'Content-type': 'application/json; charset=UTF-8',},
             })
             .then(response => {
-                if (!response.ok) {
-                    // response.status gives the HTTP status code
-                    throw new Error(`Network response was not ok: ${response.status}`);
-                }
+                if (!response.ok) { throw new Error(`Network response was not ok: ${response.status}`); }
                 return response.json();
             })
             .then(json => {
                 console.log('Success (from placeholder):', json);
                 formStatusDiv.textContent = 'Message Sent Successfully! (Placeholder response)';
-                formStatusDiv.className = 'success'; // Add success class for styling
-                contactForm.reset(); // Clear the form
+                formStatusDiv.className = 'success'; 
+                contactForm.reset(); 
             })
             .catch(error => {
                 console.error('Error:', error);
                 formStatusDiv.textContent = `Error sending message: ${error.message}. Please try again.`;
-                formStatusDiv.className = 'error'; // Add error class for styling
+                formStatusDiv.className = 'error'; 
             });
         });
     }
@@ -463,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <img src="placeholder-person1.jpg" alt="John Smith" class="profile-img">
                             </div>
                             <a href="https://www.linkedin.com/in/williamhgates" target="_blank" class="linkedin-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
                             </a>
                         </div>
                         <h3 class="member-name">John Smith</h3>
@@ -483,7 +451,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <img src="placeholder-person2.jpg" alt="Jane Doe" class="profile-img">
                             </div>
                             <a href="https://www.linkedin.com/in/satyanadella" target="_blank" class="linkedin-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
                             </a>
                         </div>
                         <h3 class="member-name">Jane Doe</h3>
@@ -503,7 +471,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <img src="placeholder-person3.jpg" alt="Michael Brown" class="profile-img">
                             </div>
                             <a href="https://www.linkedin.com/in/sundarpichai" target="_blank" class="linkedin-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
                             </a>
                         </div>
                         <h3 class="member-name">Michael Brown</h3>
@@ -523,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <img src="placeholder-person-extra1.jpg" alt="Alice Green" class="profile-img">
                             </div>
                             <a href="https://www.linkedin.com/in/example1" target="_blank" class="linkedin-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
                             </a>
                         </div>
                         <h3 class="member-name">Alice Green</h3>
@@ -548,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <img src="placeholder-person4.jpg" alt="Emily Johnson" class="profile-img">
                             </div>
                             <a href="https://www.linkedin.com/in/example2" target="_blank" class="linkedin-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
                             </a>
                         </div>
                         <h3 class="member-name">Emily Johnson</h3>
@@ -568,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <img src="placeholder-person5.jpg" alt="Brian Williams" class="profile-img">
                             </div>
                             <a href="https://www.linkedin.com/in/example3" target="_blank" class="linkedin-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
                             </a>
                         </div>
                         <h3 class="member-name">Brian Williams</h3>
@@ -588,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <img src="placeholder-person6.jpg" alt="Sarah Kim" class="profile-img">
                             </div>
                             <a href="https://www.linkedin.com/in/example4" target="_blank" class="linkedin-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
                             </a>
                         </div>
                         <h3 class="member-name">Sarah Kim</h3>
@@ -608,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <img src="placeholder-person-extra2.jpg" alt="Extra Person 2" class="profile-img">
                             </div>
                             <a href="https://www.linkedin.com/in/example5" target="_blank" class="linkedin-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="..."></path></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
                             </a>
                         </div>
                         <h3 class="member-name">David Lee</h3>
@@ -717,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     <!-- CONTACT FORM -->
     <section class="contact-us-section">
-        <div class="container-narrow"> <!-- Using a narrower container for this section -->
+        <div class="container-narrow"> 
             <div class="contact-header">
                 <span class="contact-title-tag">Contact Us</span>
                 <p class="contact-subtitle">Connect with Us: Let's Discuss Your<br>Digital Marketing Needs</p>
@@ -759,10 +727,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="contact-decoration-area">
                     <img src="assets/contact.png" alt="Abstract starburst decoration">
-                    <!-- If you want to create the stars with divs, it would be more complex here
-                        SVG or an image is recommended for that specific starburst.
-                        For now, using a placeholder image.
-                    -->
                 </div>
             </div>
             <div id="formSubmissionStatus" style="margin-top: 20px; text-align: center;"></div>
@@ -771,16 +735,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     <!-- FOOTER -->   
     <footer class="site-footer">
-    <div class="container"> <!-- Or container-narrow if you prefer a narrower footer -->
+    <div class="container"> 
         <p>© 2025 AccelRT. All Rights Reserved.</p>
     </div>
 </footer>
-</body>
+
+<!-- YOUR EXISTING SCRIPT BLOCK 2 - UNCHANGED (Accordion) -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const accordionItems = document.querySelectorAll('.accordion-item');
 
-        // Function to open the first item by default
         function openFirstItem() {
             const firstItem = accordionItems[0];
             if (firstItem) {
@@ -789,7 +753,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const icon = firstItem.querySelector('.accordion-icon');
                 
                 firstItem.classList.add('active');
-                header.style.backgroundColor = "var(--teal-card-bg)";
+                header.style.backgroundColor = "var(--teal-card-bg)"; // This was an AccelRT-specific style
                 content.style.maxHeight = content.scrollHeight + "px";
                 icon.textContent = '-';
             }
@@ -801,12 +765,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const icon = item.querySelector('.accordion-icon');
 
             item.classList.remove('active');
-            header.style.backgroundColor = "var(--white)";
-            content.style.backgroundColor = "var(--white)";
+            header.style.backgroundColor = "var(--white)"; // This was an AccelRT-specific style
+            content.style.backgroundColor = "var(--white)"; // This was an AccelRT-specific style
             content.style.maxHeight = null;
             icon.textContent = '+';
         }
-        openFirstItem(); // Call the function to open the first item
+        openFirstItem(); 
 
         accordionItems.forEach(item => {
             const header = item.querySelector('.accordion-header');
@@ -815,21 +779,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             header.addEventListener('click', () => {
                 const isActive = item.classList.contains('active');
-
-                // Close all other items
                 accordionItems.forEach(otherItem => {
                     if (otherItem !== item && otherItem.classList.contains('active')) {
                         resetAccordion(otherItem);
                     }
                 });
-
-                // Toggle the clicked item
-                if (isActive) { // If it was active, close it
+                if (isActive) { 
                     resetAccordion(item);
-                } else { // If it was closed, open it
+                } else { 
                     item.classList.add('active');
-                    header.style.backgroundColor = "var(--teal-card-bg)";
-                    content.style.backgroundColor = "var(--teal-card-bg)";
+                    header.style.backgroundColor = "var(--teal-card-bg)"; // AccelRT specific
+                    content.style.backgroundColor = "var(--teal-card-bg)"; // AccelRT specific
                     content.style.maxHeight = content.scrollHeight + "px";
                     icon.textContent = '-';
                 }
@@ -837,4 +797,241 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 </script>
+
+<!-- ======= NEW SCRIPT BLOCK FOR JSON LOADING AND TEXT UPDATES ======= -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Create and Show Loading Screen ---
+    const loader = document.createElement('div');
+    loader.id = 'pageLoader';
+    loader.style.position = 'fixed';
+    loader.style.left = '0';
+    loader.style.top = '0';
+    loader.style.width = '100%';
+    loader.style.height = '100%';
+    loader.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+    loader.style.zIndex = '9999';
+    loader.style.display = 'flex';
+    loader.style.justifyContent = 'center';
+    loader.style.alignItems = 'center';
+    loader.style.fontSize = '24px';
+    loader.style.fontFamily = 'Inter, sans-serif';
+    loader.style.color = '#1E1E2F';
+    loader.textContent = 'Loading Content...';
+    document.body.appendChild(loader);
+    document.body.style.overflow = 'hidden'; // Prevent scrolling while loader is active
+
+    // Helper to safely update text content
+    function updateText(selector, text, parent = document) {
+        try {
+            const element = parent.querySelector(selector);
+            if (element) {
+                element.textContent = text;
+            } else {
+                console.warn(`Element not found for selector: ${selector}`);
+            }
+        } catch (e) {
+            console.error(`Error updating text for selector: ${selector}`, e);
+        }
+    }
+    function updateMeta(name, content) {
+        try {
+            const element = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
+            if (element) {
+                element.setAttribute('content', content);
+            } else {
+                 console.warn(`Meta tag not found for: ${name}`);
+            }
+        } catch (e) {
+            console.error(`Error updating meta for: ${name}`, e);
+        }
+    }
+
+
+    fetch('https://accelrt-v2.vercel.app/api/get-data.js')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // --- Populate Meta Tags ---
+            if (data.meta) {
+                if (data.meta.title) document.title = data.meta.title;
+                updateMeta('description', data.meta.description);
+                updateMeta('og:title', data.meta.ogTitle);
+                updateMeta('og:description', data.meta.ogDescription);
+                updateMeta('twitter:title', data.meta.twitterTitle);
+                updateMeta('twitter:description', data.meta.twitterDescription);
+            }
+
+            // --- Populate Hero Section ---
+            if (data.hero) {
+                updateText('.hero-section .hero-content h1', data.hero.title);
+                updateText('.hero-section .hero-content .description', data.hero.description);
+                updateText('.hero-section .hero-content .hero-button', data.hero.buttonText);
+            }
+
+            // --- Populate Services Intro ---
+            if (data.servicesIntro) {
+                updateText('.services-intro .big-button-heading', data.servicesIntro.heading);
+                updateText('.services-intro .services-intro-description', data.servicesIntro.description);
+            }
+
+            // --- Populate Service Cards ---
+            if (data.services && Array.isArray(data.services)) {
+                const serviceCards = document.querySelectorAll('.services-grid .service-card');
+                serviceCards.forEach((card, index) => {
+                    if (data.services[index]) {
+                        updateText('.card-title .title-tag:nth-of-type(1)', data.services[index].titleTag1, card);
+                        updateText('.card-title .title-tag:nth-of-type(2)', data.services[index].titleTag2, card);
+                        // The "Learn more" text is inside a span that's the last child of the <a>
+                        const learnMoreLink = card.querySelector('.learn-more-card-button');
+                        if (learnMoreLink && learnMoreLink.lastChild && learnMoreLink.lastChild.nodeType === Node.ELEMENT_NODE && learnMoreLink.lastChild.tagName === 'SPAN') {
+                            learnMoreLink.lastChild.textContent = data.services[index].learnMoreText;
+                        } else if (learnMoreLink && learnMoreLink.childNodes.length > 1 && learnMoreLink.childNodes[learnMoreLink.childNodes.length-1].nodeType === Node.TEXT_NODE) {
+                             learnMoreLink.childNodes[learnMoreLink.childNodes.length-1].textContent = ` ${data.services[index].learnMoreText}`; // Add space if it's a direct text node
+                        }
+                    }
+                });
+            }
+
+            // --- Populate CTA Section ---
+            if (data.cta) {
+                updateText('.cta-section .cta-content h2', data.cta.heading);
+                updateText('.cta-section .cta-content p', data.cta.description);
+                updateText('.cta-section .cta-content .cta-button', data.cta.buttonText);
+            }
+            
+            // --- Populate Team Section Header ---
+            // The team header uses .contact-header class, and it's the first one with this class in team-section
+            const teamHeaderElement = document.querySelector('.team-section .contact-header');
+            if (data.teamHeader && teamHeaderElement) {
+                updateText('.contact-title-tag', data.teamHeader.heading, teamHeaderElement);
+                updateText('.contact-subtitle', data.teamHeader.subheading, teamHeaderElement);
+            }
+
+            // --- Populate Team Members ---
+            if (data.teamMembers && Array.isArray(data.teamMembers)) {
+                const teamCards = document.querySelectorAll('.team-section .team-card');
+                teamCards.forEach((card, index) => {
+                    if (data.teamMembers[index]) {
+                        updateText('.member-name', data.teamMembers[index].name, card);
+                        updateText('.member-title', data.teamMembers[index].title, card);
+                        updateText('.member-description', data.teamMembers[index].description, card);
+                    }
+                });
+            }
+
+            // --- Populate FAQ Section Header ---
+            const faqHeaderElement = document.querySelector('.faq-section .process-header .process-title-tag');
+            if (data.faqHeader && faqHeaderElement) {
+                faqHeaderElement.textContent = data.faqHeader.heading;
+            }
+
+            // --- Populate FAQ Items ---
+            if (data.faqItems && Array.isArray(data.faqItems)) {
+                const faqItems = document.querySelectorAll('.faq-section .accordion-item');
+                faqItems.forEach((item, index) => {
+                    if (data.faqItems[index]) {
+                        updateText('.accordion-number', data.faqItems[index].number, item);
+                        updateText('.accordion-title', data.faqItems[index].title, item);
+                        updateText('.accordion-content p', data.faqItems[index].description, item);
+                    }
+                });
+            }
+            
+            // --- Populate Contact Us Section Header ---
+            // This is the second .contact-header on the page, or the one within .contact-us-section
+            const contactUsHeaders = document.querySelectorAll('.contact-us-section .contact-header');
+            if (data.contactUsHeader && contactUsHeaders.length > 0) {
+                // Assuming the specific contact section has only one .contact-header
+                const contactHeaderInSection = document.querySelector('.contact-us-section:not(.team-section) .contact-header'); // More specific
+                if(contactHeaderInSection) {
+                    updateText('.contact-title-tag', data.contactUsHeader.heading, contactHeaderInSection);
+                    updateText('.contact-subtitle', data.contactUsHeader.subheading, contactHeaderInSection);
+                } else if (contactUsHeaders.length > 0) { // Fallback if above selector fails
+                     // This might pick the team section header if it's also .contact-us-section. Be careful.
+                     // Let's assume there's a distinct .contact-us-section that is NOT the team section.
+                     // The provided HTML has a specific one for the form.
+                    const formContactHeader = Array.from(document.querySelectorAll('.contact-header')).find(h => h.closest('.contact-us-section') && !h.closest('.team-section'));
+                    if(formContactHeader){
+                        updateText('.contact-title-tag', data.contactUsHeader.heading, formContactHeader);
+                        updateText('.contact-subtitle', data.contactUsHeader.subheading, formContactHeader);
+                    } else { // Last resort: if only one .contact-us-section on the whole page
+                        const mainContactSection = document.querySelector('.contact-us-section');
+                        if(mainContactSection){
+                             const header = mainContactSection.querySelector('.contact-header');
+                             if(header){
+                                updateText('.contact-title-tag', data.contactUsHeader.heading, header);
+                                updateText('.contact-subtitle', data.contactUsHeader.subheading, header);
+                             }
+                        }
+                    }
+                }
+            }
+
+            // --- Populate Contact Form Text ---
+            if (data.contactForm) {
+                // Radio button labels are tricky as they are text nodes after a span.
+                // We target the label, then find its last text node.
+                const radioLabels = document.querySelectorAll('.contact-form-area .form-options .radio-option');
+                if (radioLabels[0]) {
+                    // Find the text node (usually the last child node of the label)
+                    for(let i = radioLabels[0].childNodes.length - 1; i >= 0; i--) {
+                        if(radioLabels[0].childNodes[i].nodeType === Node.TEXT_NODE && radioLabels[0].childNodes[i].textContent.trim() !== "") {
+                            radioLabels[0].childNodes[i].textContent = ` ${data.contactForm.radioSayHi}`; break;
+                        }
+                    }
+                }
+                if (radioLabels[1]) {
+                     for(let i = radioLabels[1].childNodes.length - 1; i >= 0; i--) {
+                        if(radioLabels[1].childNodes[i].nodeType === Node.TEXT_NODE && radioLabels[1].childNodes[i].textContent.trim() !== "") {
+                            radioLabels[1].childNodes[i].textContent = ` ${data.contactForm.radioGetQuote}`; break;
+                        }
+                    }
+                }
+
+                updateText('label[for="contactName"]', data.contactForm.labelName);
+                updateText('label[for="contactEmail"]', data.contactForm.labelEmail);
+                updateText('label[for="contactMessage"]', data.contactForm.labelMessage);
+                updateText('#contactForm .submit-button', data.contactForm.buttonText);
+            }
+
+            // --- Populate Footer ---
+            if (data.footer) {
+                updateText('.site-footer p', data.footer.copyrightText);
+            }
+
+            console.log('Content loaded from JSON successfully.');
+        })
+        .catch(error => {
+            console.error('Failed to load or parse content.json:', error);
+            if(loader) loader.textContent = 'Error loading content.';
+            // Keep loader on error or provide an error message
+        })
+        .finally(() => {
+            // --- Hide Loading Screen ---
+            if (loader) {
+                // Optional: Add a slight delay or fade out
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.5s ease-out';
+                    setTimeout(() => {
+                        if (document.body.contains(loader)) {
+                             document.body.removeChild(loader);
+                        }
+                        document.body.style.overflow = ''; // Restore scrolling
+                    }, 500); // Match transition duration
+                }, 200); // Small delay to ensure content is rendered
+            } else {
+                 document.body.style.overflow = ''; // Restore scrolling if loader wasn't found
+            }
+        });
+});
+</script>
+<!-- ======= END NEW SCRIPT BLOCK ======= -->
+
+</body>
 </html>

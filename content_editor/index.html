@@ -151,18 +151,6 @@
             <input type="password" id="apiKey" placeholder="Enter your Access Key">
         </div>
 
-        <div class="form-group">
-            <label for="jsonData">Paste Full JSON Content Here:</label>
-            <textarea id="jsonData" placeholder='{ "hero": { "title": "New Title" }, ... }'></textarea>
-        </div>
-
-        <button id="submitRawJsonBtn">Update with Raw JSON</button>
-        <div id="statusMessageRaw" class="status-message" style="display: none;"></div>
-    </div>
-
-    <div class="separator">--- OR ---</div>
-
-    <div class="container">
         <h2>Update Content via Form</h2>
         <button id="loadCurrentDataBtn">Load Current Data & Build Form</button>
         <div id="dynamicFormContainer" style="margin-top: 20px;">
@@ -170,6 +158,18 @@
         </div>
         <button id="submitFormDataBtn" style="display:none; margin-top: 20px;">Update with Form Data</button>
         <div id="statusMessageForm" class="status-message" style="display: none;"></div>
+    </div>
+
+    <div class="separator">--- OR ---</div>
+
+    <div class="container">
+        <div class="form-group">
+            <label for="jsonData">Paste Full JSON Content Here:</label>
+            <textarea id="jsonData" placeholder='{ "hero": { "title": "New Title" }, ... }'></textarea>
+        </div>
+
+        <button id="submitRawJsonBtn">Update with Raw JSON</button>
+        <div id="statusMessageRaw" class="status-message" style="display: none;"></div>
     </div>
 
     <script>

@@ -48,7 +48,7 @@ export default async function handler(req, res) {
   }
 
   const apiKey = req.headers['x-api-key'];
-  console.log("New api key is " + apiKey)
+  console.log("Recieved api key is " + apiKey)
   if (apiKey !== process.env.UPDATE_API_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
   }

@@ -847,7 +847,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    const headers = {'X-API-KEY': process.env.UPDATE_API_KEY};
+    const headers = {'X-API-KEY': "accelrt"};
 
     fetch('https://accelrt-v2.vercel.app/api/get-data', { headers })
         .then(response => {

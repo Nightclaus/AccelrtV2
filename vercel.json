@@ -4,12 +4,20 @@
     {
       "src": "api/get-data.js",
       "use": "@vercel/node"
+    },
+    { 
+      "src": "api/update-data.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/get-data",
       "dest": "/api/get-data.js"
+    },
+    {
+      "src": "/api/update-data",
+      "dest": "/api/update-data.js"
     }
   ]
 }

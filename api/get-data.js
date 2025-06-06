@@ -1,4 +1,4 @@
-// your-project-name/api/get-data.js
+// root/api/get-data.js
 import path from 'path';
 import fs from 'fs/promises';
 

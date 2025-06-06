@@ -8,7 +8,7 @@
     --text-dark: #1E1E2F;
     --text-light: #FFFFFF;
     --text-muted: #5A5A6D;
-    --grey-highlight: #9d9da8;
+    --grey-highlight: #b6b6c3;
     --border-color: #E0E0E6;
     --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
     --card-hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
@@ -54,7 +54,7 @@ body {
 .hero-content {
     flex-basis: 50%;
     background-color: var(--white);
-    padding: 22px 30px;
+    padding: 22px 80px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -115,6 +115,8 @@ body {
 .services-intro {
     text-align: center;
     padding: 40px 0;
+    margin-bottom: 40px;
+    background-color: var(--white);
 }
 
 .big-button-heading {
@@ -273,7 +275,7 @@ body {
 
 /* CTA Section */
 .cta-section {
-    padding: 60px 20px;
+    padding: 60px 20px 100px 20px;
     color: var(--text-light);
 }
 .cta-section.light-theme {
@@ -294,6 +296,7 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 40px;
+    margin: 60px;
 }
 
 .cta-content {
@@ -336,6 +339,7 @@ body {
     justify-content: center;
     border-radius: var(--border-radius-lg);
     font-style: italic;
+    margin: 80px 0px 20px 0px;
 }
 .cta-image-placeholder img {
     max-width: 100%;
@@ -343,8 +347,8 @@ body {
     object-fit: contain;
 }
 .cta-section.light-theme .cta-image-placeholder {
-        background-color: #CFD8DC;
-        color: var(--text-muted);
+    background-color: #CFD8DC;
+    color: var(--text-muted);
 }
 
 
@@ -374,17 +378,24 @@ body {
         text-align:center;
     }
     .card-text-content {
-            flex-basis: auto;
-            margin-bottom: 15px;
+        flex-basis: auto;
+        margin-bottom: 15px;
+    }
+    .card-title {
+        align-items: center;
+    }
+
+    .card-title .title-tag {
+        font-size: 48px;;
     }
     .card-image-area img {
         max-width: 100%;
-        max-height: 100%; /* Allow it to use the full height of its flex container */
+        max-height: 60vh; /* Allow it to use the full height of its flex container */
         height: auto; /* Maintain its own aspect ratio while fitting */
         object-fit: contain;
     }
     .card-image-area {
-        flex-basis: 35%; /* Or adjust this percentage */
+        flex-basis: 80%; /* Or adjust this percentage */
         /* You might also want to give card-image-area a flex-shrink: 0 if it shouldn't shrink below its content */
         min-height: 0; /* Important for flex items that might contain large content to shrink properly */
         display: flex;

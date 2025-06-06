@@ -50,20 +50,33 @@ export default async function handler(req, res) {
     const incomingData = req.body; // Vercel automatically parses JSON body
 
     const date = new Date();
-    date.setSeconds(0, 0); // round to nearest minute
+    const options = { 
+        timeZone: 'Australia/Sydney', 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: false 
+    };
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hour = String(date.getHours()).padStart(2, '0');
-    const minute = String(date.getMinutes()).padStart(2, '0');
+    const parts = new Intl.DateTimeFormat('en-AU', options).formatToParts(date);
+
+    // Extract components
+    const getPart = (type) => parts.find(p => p.type === type)?.value || '00';
+
+    const year = getPart('year');
+    const month = getPart('month');
+    const day = getPart('day');
+    const hour = getPart('hour');
+    const minute = getPart('minute');
 
     const formatted = `${year}-${month}-${day} ${hour}:${minute}`;
 
     // Correct: Assign an object, not a number
     incomingData["timestamp (automatic)"] = {
     "timestamp of last update":  Date.now(),
-    "formatted timestamp": formatted
+    "formatted timestamp (AEST)": formatted
     };
 
     if (!incomingData || typeof incomingData !== 'object' || Object.keys(incomingData).length === 0) {

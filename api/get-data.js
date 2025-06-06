@@ -47,7 +47,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
-  const apiKey = req.headers['X-API-KEY'];
+  const apiKey = req.headers['x-api-key'];
+  console.log("New api key is " + apiKey)
   if (apiKey !== process.env.UPDATE_API_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
   }

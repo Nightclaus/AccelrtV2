@@ -75,7 +75,7 @@ export default async function handler(req, res) {
     const updateLog = changeLogs.doc();
     
     await updateLog.set(incomingData);
-    await docRef.set(incomingData, { merge: true }); // Safety, Not a complete overide
+    await docRef.set(incomingData, { merge: false }); // Complete overide
     console.log(incomingData);
 
     res.status(200).json({ message: `Document '${DOCUMENT_ID}' in collection '${COLLECTION_NAME}' has been successfully set/overridden.` });

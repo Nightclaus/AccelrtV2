@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     const incomingData = req.body; // Vercel automatically parses JSON body
 
     const date = new Date();
-    date.setSeconds(0, 0); // Round to nearest minute by clearing seconds & ms
+    date.setSeconds(0, 0); // round to nearest minute
 
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -60,9 +60,11 @@ export default async function handler(req, res) {
 
     const formatted = `${year}-${month}-${day} ${hour}:${minute}`;
 
-    incomingData.version_shown = {};
-    incomingData.timestamp["timestamp of last update"] = date;
-    incomingData.timestamp["formatted timestamp"] = formatted;
+    // Correct: Assign an object, not a number
+    incomingData["timestamp (automatic)"] = {
+    "timestamp of last update": date,
+    "formatted timestamp": formatted
+    };
 
     if (!incomingData || typeof incomingData !== 'object' || Object.keys(incomingData).length === 0) {
       return res.status(400).json({ error: 'Invalid or empty JSON payload in request body.' });

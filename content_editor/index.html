@@ -127,7 +127,7 @@
             position: relative; /* For the toggle icon */
             user-select: none; /* Prevent text selection on click */
             border-bottom: 1px solid #dee2e6; /* Separator when open */
-            transition: background-color 0.2s ease;
+            transition: background-color 0.2s linear;
         }
         .dynamic-form-section h3:hover {
             background-color: #e9ecef;
@@ -140,7 +140,7 @@
             top: 50%;
             transform: translateY(-50%);
             font-size: 0.8em;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s linear;
         }
 
         .dynamic-form-section.open h3 {
@@ -155,7 +155,7 @@
         .section-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s ease-out, padding-top 0.4s ease-out, padding-bottom 0.4s ease-out;
+            transition: max-height 0.4s linear, padding-top 0.4s linear, padding-bottom 0.4s linear;
             padding: 0 20px;
         }
 

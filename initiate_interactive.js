@@ -72,16 +72,20 @@ document.addEventListener('DOMContentLoaded', function () {
     ];
 
     const pageScrollAnimationDistance = 250; 
+    const rowAnimationHandlers = [];
 
     rowsToProcess.forEach(rowConfig => {
         if (!rowConfig.element) {
             console.warn(`Team row element not found for ${rowConfig.isTopRow ? 'top' : 'bottom'} row.`);
             return;
         }
-        setupInteractiveRow(rowConfig.element, rowConfig.isTopRow, pageScrollAnimationDistance);
+        const rowSpecificScrollHandler = setupInteractiveRow(rowConfig.element, rowConfig.isTopRow, pageScrollAnimationDistance, teamSection);
+        if (rowSpecificScrollHandler) {
+            rowAnimationHandlers.push(rowSpecificScrollHandler);
+        }
     });
 
-    function setupInteractiveRow(rowElement, isTopRow, scrollAnimDist) {
+    function setupInteractiveRow(rowElement, isTopRow, scrollAnimDist, teamSectionElement) {
         if (!rowElement) {
             console.error(`setupInteractiveRow called with null rowElement for ${isTopRow ? 'top' : 'bottom'} row.`);
             return;
@@ -150,8 +154,8 @@ document.addEventListener('DOMContentLoaded', function () {
             rowElement.style.transform = `translateX(${combinedTranslateX}px)`;
         }
 
-        function handlePageScrollAnimation() {
-            const teamSectionForRect = document.querySelector('.team-section'); // Main team section
+        function specificRowPageScrollAnimation() {
+            const teamSectionForRect = teamSectionElement;
             if (!teamSectionForRect) return;
 
             const rect = teamSectionForRect.getBoundingClientRect();
@@ -244,57 +248,59 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, { passive: false });
 
-        // --- SETUP INTERSECTION OBSERVER (uses handlePageScrollAnimation) ---
-        const teamSectionForObserver = document.querySelector('.team-section');
-        if (teamSectionForObserver) {
-            const observerOptions = { rootMargin: '0px', threshold: 0.01 };
-            // Create a unique observer for each row instance if necessary, or a shared one if logic is identical
-            // For now, assuming 'teamSectionForObserver' is the overall trigger for both rows' animations
-            const teamObserver = new IntersectionObserver((entries) => {
-                entries.forEach((entry) => {
-                    if (entry.target === teamSectionForObserver) { // Make sure it's the main section
-                        if (entry.isIntersecting) {
-                            window.addEventListener('scroll', handlePageScrollAnimation, { passive: true });
-                            handlePageScrollAnimation(); // Initial call
-                            // console.log(`[${rowType} Row] Observer: Intersecting. Attached scroll listener.`);
-                        } else {
-                            window.removeEventListener('scroll', handlePageScrollAnimation);
-                            // console.log(`[${rowType} Row] Observer: Not intersecting. Removed scroll listener.`);
+        console.log(`Finished setting up ${rowType} Row fully with scrollAnimDist: ${scrollAnimDist}.`);
+        return specificRowPageScrollAnimation;
+    }
+
+    // Global observer
+    if (rowAnimationHandlers.length > 0) { // Only set up observer if there are handlers
+        const observerOptions = { rootMargin: '0px', threshold: 0.01 };
+        let isSectionCurrentlyIntersecting = false; // Track current state
+
+        const teamSectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.target === teamSection) {
+                    if (entry.isIntersecting) {
+                        if (!isSectionCurrentlyIntersecting) { // Only attach if not already attached
+                            isSectionCurrentlyIntersecting = true;
+                            console.log("Team Section is IN VIEW. Attaching master scroll listener.");
+                            rowAnimationHandlers.forEach(handler => handler()); // Initial call for all rows
+                            window.addEventListener('scroll', masterScrollHandler, { passive: true });
+                        }
+                    } else {
+                        if (isSectionCurrentlyIntersecting) { // Only detach if previously attached
+                            isSectionCurrentlyIntersecting = false;
+                            console.log("Team Section is OUT OF VIEW. Removing master scroll listener.");
+                            window.removeEventListener('scroll', masterScrollHandler);
                         }
                     }
-                });
-            }, observerOptions);
-            
-            // Check if already observed to avoid multiple observers on same element from multiple calls
-            // This is a simple check; a more robust way would be to manage observers centrally
-            if (!teamSectionForObserver._hasBeenObservedByCarousel) {
-                teamObserver.observe(teamSectionForObserver);
-                teamSectionForObserver._hasBeenObservedByCarousel = true; // Mark as observed
-            } else {
-                // If already observed by another row's setup, just ensure current row's handler is called if intersecting
-                if (isElementInViewport(teamSectionForObserver)) {
-                    window.addEventListener('scroll', handlePageScrollAnimation, { passive: true });
-                    handlePageScrollAnimation();
                 }
-            }
-            
-            // Initial check if already in view when page loads (independent of observer for immediate setup)
-            if (isElementInViewport(teamSectionForObserver)) {
-                handlePageScrollAnimation();
-            }
-        } else {
-            console.warn(`[${rowType} Row] .team-section not found for IntersectionObserver.`);
+            });
+        }, observerOptions);
+
+        teamSectionObserver.observe(teamSection);
+
+        function masterScrollHandler() {
+            // This function is called on window scroll if the section is intersecting
+            rowAnimationHandlers.forEach(handler => handler());
         }
 
-        console.log(`Finished setting up ${rowType} Row fully with scrollAnimDist: ${scrollAnimDist}.`);
+        // Initial check on page load if the section is already visible
+        if (isElementInViewport(teamSection)) {
+            isSectionCurrentlyIntersecting = true; // Set flag
+            console.log("Team Section initially IN VIEW. Calling handlers and attaching master scroll listener.");
+            rowAnimationHandlers.forEach(handler => handler());
+            window.addEventListener('scroll', masterScrollHandler, { passive: true });
+        }
+    } else {
+        console.warn("No row animation handlers were set up for the team carousel.");
     }
 
     function isElementInViewport(el) {
         if (!el) return false;
         const rect = el.getBoundingClientRect();
         return (
-            rect.top < window.innerHeight &&
-            rect.bottom > 0 
+            rect.top < window.innerHeight && rect.bottom > 0 
             // Optionally add left/right checks too if needed
             // rect.left < window.innerWidth &&
             // rect.right > 0

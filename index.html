@@ -655,6 +655,19 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error(`Error updating text for selector: ${selector}`, e);
         }
     }
+    // --- Helper function to update an attribute (add this alongside your updateText) ---
+    function updateAttribute(selector, attributeName, value, parent = document) {
+        try {
+            const element = parent.querySelector(selector);
+            if (element) {
+                element.setAttribute(attributeName, value);
+            } else {
+                console.warn(`[updateAttribute] Element not found for selector: '${selector}' in parent:`, parent);
+            }
+        } catch (e) {
+            console.error(`[updateAttribute] Error updating attribute '${attributeName}' for selector: '${selector}'`, e);
+        }
+    }
     function updateMeta(name, content) {
         try {
             const element = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
@@ -741,6 +754,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         updateText('.member-name', data.teamMembers[index].name, card);
                         updateText('.member-title', data.teamMembers[index].title, card);
                         updateText('.member-description', data.teamMembers[index].description, card);
+
+                        if (data.teamMembers[index].linkedinUrl) {
+                            console.log("a1");
+                            updateAttribute('.linkedin-icon', 'href', data.teamMembers[index].linkedinUrl, card);
+                            console.log(`Updated LinkedIn URL for ${data.teamMembers[index].name} to: ${data.teamMembers[index].linkedinUrl}`);
+                        } else {
+                            updateAttribute('.linkedin-icon', 'href', '#', card); // Set to a placeholder if missing
+                            console.warn(`LinkedIn URL missing for team member: ${data.teamMembers[index].name}`);
+                        }
+                        
                         console.log("Updated team member:", data.teamMembers[index].name, "in card:", card);
                     } else {
                         console.warn(`No data found for team card at index ${index}`);

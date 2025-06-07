@@ -32,185 +32,6 @@
 // YOUR EXISTING SCRIPT BLOCK 1 - UNCHANGED (Team Carousel, Contact Form etc.)
 // ... (The long script block you provided for team carousel and contact form) ...
 document.addEventListener('DOMContentLoaded', function () {
-    const teamSection = document.querySelector('.team-section');
-    if (!teamSection) {
-        console.warn('Team section not found.');
-        return;
-    }
-
-    const rowsToProcess = [
-        { element: teamSection.querySelector('.team-row.top-row'), isTopRow: true },
-        { element: teamSection.querySelector('.team-row.bottom-row'), isTopRow: false }
-    ];
-
-    const pageScrollAnimationDistance = 250; 
-
-    rowsToProcess.forEach(rowConfig => {
-        if (!rowConfig.element) {
-            console.warn(`Team row element not found for ${rowConfig.isTopRow ? 'top' : 'bottom'} row.`);
-            return;
-        }
-        setupInteractiveRow(rowConfig.element, rowConfig.isTopRow);
-    });
-
-    function setupInteractiveRow(rowElement, isTopRow) {
-        const rowWrapper = rowElement.parentElement;
-        let originalCards = Array.from(rowElement.children);
-
-        if (originalCards.length === 0) {
-            console.warn(`No cards found in ${isTopRow ? 'top' : 'bottom'} row.`);
-            return;
-        }
-
-        const clonesStart = originalCards.map(card => card.cloneNode(true));
-        const clonesEnd = originalCards.map(card => card.cloneNode(true));
-
-        clonesEnd.forEach(clone => rowElement.appendChild(clone)); 
-        clonesStart.slice().reverse().forEach(clone => rowElement.prepend(clone)); 
-        
-        let cardStyle = window.getComputedStyle(originalCards[0]);
-        let gapValue = parseFloat(window.getComputedStyle(rowElement).gap || 0);
-        
-        let originalContentWidth = 0;
-        originalCards.forEach((card, index) => {
-            originalContentWidth += card.offsetWidth;
-            if (index < originalCards.length - 1) {
-                originalContentWidth += gapValue;
-            }
-        });
-        
-        let initialTranslateX = -originalContentWidth;
-        
-        let isDragging = false;
-        let startPointerX;         
-        let currentDragOffset = 0;   
-        let accumulatedDragOffset = 0; 
-        let pageScrollOffset = 0;    
-        
-        rowElement.style.transform = `translateX(${initialTranslateX}px)`;
-        
-        function onDragStart(e) {
-            isDragging = true;
-            startPointerX = e.pageX || e.touches[0].pageX;
-            currentDragOffset = 0; 
-            rowWrapper.classList.add('is-dragging');
-            rowElement.style.transition = 'none'; 
-        }
-
-        function onDragMove(e) {
-            if (!isDragging) return;
-
-            const currentPointerX = e.pageX || (e.touches && e.touches[0].pageX);
-            if (currentPointerX === undefined) return; 
-
-            currentDragOffset = currentPointerX - startPointerX;
-            applyTransformations();
-        }
-
-        function onDragEnd() {
-            if (!isDragging) return;
-            isDragging = false;
-            rowWrapper.classList.remove('is-dragging');
-            accumulatedDragOffset += currentDragOffset; 
-            currentDragOffset = 0; 
-            applyTransformations(); 
-        }
-
-        rowWrapper.addEventListener('mousedown', onDragStart);
-        rowWrapper.addEventListener('touchstart', (e) => {
-            e.preventDefault(); 
-            onDragStart(e);
-        }, { passive: false });
-
-
-        document.addEventListener('mousemove', onDragMove); 
-        document.addEventListener('touchmove', (e) => {
-             if (!isDragging) return;
-             e.preventDefault(); 
-             onDragMove(e);
-        }, { passive: false });
-
-
-        document.addEventListener('mouseup', onDragEnd);
-        document.addEventListener('touchend', onDragEnd);
-        rowWrapper.addEventListener('mouseleave', () => { 
-            if (isDragging) onDragEnd();
-        });
-
-        rowWrapper.addEventListener('wheel', (e) => {
-            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { 
-                e.preventDefault(); 
-                accumulatedDragOffset -= e.deltaX * 0.5; 
-                rowElement.style.transition = 'none'; 
-                applyTransformations();
-            }
-        }, { passive: false }); 
-
-
-        function handlePageScrollAnimation() {
-            const rect = teamSection.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            let progress = 0;
-
-            const animationStartPoint = viewportHeight;
-            const animationEndPoint = -rect.height;
-
-            if (rect.top <= animationStartPoint && rect.bottom >= 0) {
-                const currentScrollInAnimationRange = animationStartPoint - rect.top;
-                const totalAnimationScrollRange = animationStartPoint - animationEndPoint;
-                progress = currentScrollInAnimationRange / totalAnimationScrollRange;
-                progress = Math.max(0, Math.min(1, progress));
-            } else if (rect.top > animationStartPoint) {
-                progress = 0;
-            } else {
-                progress = 1;
-            }
-
-            const direction = isTopRow ? 1 : -1;
-            pageScrollOffset = (progress - 0.5) * pageScrollAnimationDistance * direction;
-            
-            if (!isDragging) {
-                applyTransformations();
-            }
-        }
-        
-        function applyTransformations() {
-            let combinedTranslateX = initialTranslateX + pageScrollOffset + accumulatedDragOffset + currentDragOffset;
-
-            if (combinedTranslateX > initialTranslateX + originalContentWidth / 2 ) { 
-                accumulatedDragOffset -= originalContentWidth; 
-                combinedTranslateX -= originalContentWidth;    
-            }
-            else if (combinedTranslateX < initialTranslateX - originalContentWidth / 2) {
-                accumulatedDragOffset += originalContentWidth; 
-                combinedTranslateX += originalContentWidth;    
-            }
-            
-            rowElement.style.transform = `translateX(${combinedTranslateX}px)`;
-        }
-        
-        const observerOptions = {
-            rootMargin: '0px',
-            threshold: 0.01,
-        };
-
-        const teamObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.target === teamSection) { 
-                    if (entry.isIntersecting) {
-                        window.addEventListener('scroll', handlePageScrollAnimation, { passive: true });
-                        handlePageScrollAnimation(); 
-                    } else {
-                        window.removeEventListener('scroll', handlePageScrollAnimation);
-                    }
-                }
-            });
-        }, observerOptions);
-
-        teamObserver.observe(teamSection); 
-        handlePageScrollAnimation();
-    } 
-
     const contactForm = document.getElementById('contactForm');
     const formStatusDiv = document.getElementById('formSubmissionStatus');
 
@@ -507,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             <div class="team-row-wrapper">
                 <div class="team-row bottom-row">
-                    <!-- Team Member Card 4 -->
+                    <!-- Team Member Card 5 -->
                     <div class="team-card">
                         <div class="card-header">
                             <div class="profile-pic-container">
@@ -527,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         </p>
                     </div>
 
-                    <!-- Team Member Card 5 -->
+                    <!-- Team Member Card 6 -->
                     <div class="team-card">
                         <div class="card-header">
                             <div class="profile-pic-container">
@@ -547,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         </p>
                     </div>
 
-                    <!-- Team Member Card 6 -->
+                    <!-- Team Member Card 7 -->
                     <div class="team-card">
                         <div class="card-header">
                             <div class="profile-pic-container">
@@ -567,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         </p>
                     </div>
 
-                    <!-- Team Member Card 7 -->
+                    <!-- Team Member Card 8 -->
                     <div class="team-card">
                         <div class="card-header">
                             <div class="profile-pic-container">
@@ -907,20 +728,22 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // --- Populate Team Section Header ---
             // The team header uses .contact-header class, and it's the first one with this class in team-section
-            const teamHeaderElement = document.querySelector('.team-section .contact-header');
-            if (data.teamHeader && teamHeaderElement) {
-                updateText('.contact-title-tag', data.teamHeader.heading, teamHeaderElement);
-                updateText('.contact-subtitle', data.teamHeader.subheading, teamHeaderElement);
-            }
-
-            // --- Populate Team Members ---
             if (data.teamMembers && Array.isArray(data.teamMembers)) {
-                const teamCards = document.querySelectorAll('.team-section .team-card');
-                teamCards.forEach((card, index) => {
+                const topRowCards = document.querySelectorAll('.team-section .top-row > .team-card');
+                const bottomRowCards = document.querySelectorAll('.team-section .bottom-row > .team-card');
+                const originalTeamCards = [...topRowCards, ...bottomRowCards]; // Combine into one array
+
+                console.log(`Found ${originalTeamCards.length} original team cards to populate.`);
+
+                originalTeamCards.forEach((card, index) => {
                     if (data.teamMembers[index]) {
+                        // updateText function is correctly scoped with `card` as parent
                         updateText('.member-name', data.teamMembers[index].name, card);
                         updateText('.member-title', data.teamMembers[index].title, card);
                         updateText('.member-description', data.teamMembers[index].description, card);
+                        console.log("Updated team member:", data.teamMembers[index].name, "in card:", card);
+                    } else {
+                        console.warn(`No data found for team card at index ${index}`);
                     }
                 });
             }
@@ -1006,6 +829,251 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             console.log('Content loaded from JSON successfully.');
+
+            ////---------------------------////
+            //// Initialising the Carousel ////
+            ////---------------------------////
+
+            const teamSection = document.querySelector('.team-section');
+            if (!teamSection) {
+                console.warn('Team section not found.');
+                return;
+            }
+
+            const rowsToProcess = [
+                { element: teamSection.querySelector('.team-row.top-row'), isTopRow: true },
+                { element: teamSection.querySelector('.team-row.bottom-row'), isTopRow: false }
+            ];
+
+            const pageScrollAnimationDistance = 250; 
+
+            rowsToProcess.forEach(rowConfig => {
+                if (!rowConfig.element) {
+                    console.warn(`Team row element not found for ${rowConfig.isTopRow ? 'top' : 'bottom'} row.`);
+                    return;
+                }
+                setupInteractiveRow(rowConfig.element, rowConfig.isTopRow, pageScrollAnimationDistance);
+            });
+
+            function setupInteractiveRow(rowElement, isTopRow, scrollAnimDist) {
+                if (!rowElement) {
+                    console.error(`setupInteractiveRow called with null rowElement for ${isTopRow ? 'top' : 'bottom'} row.`);
+                    return;
+                }
+                const rowType = isTopRow ? 'TOP' : 'BOTTOM';
+                console.log(`--- Setting up ${rowType} Row ---`, "Element:", rowElement);
+
+                const rowWrapper = rowElement.parentElement;
+                let originalCardsBeforeCloning = Array.from(rowElement.children);
+
+                console.log(`[${rowType} Row] Initial originalCardsBeforeCloning.length: ${originalCardsBeforeCloning.length}`);
+                originalCardsBeforeCloning.forEach((card, i) => {
+                    const nameEl = card.querySelector('.member-name');
+                    console.log(`[${rowType} Row] Original Card ${i} (pre-clone): ${nameEl ? nameEl.textContent.substring(0, 20) : 'NO NAME'}`);
+                });
+
+                if (originalCardsBeforeCloning.length === 0) {
+                    console.warn(`[${rowType} Row] No original cards found. Cloning might not work as expected.`);
+                }
+
+                // --- CLONING LOGIC ---
+                const clonesStartData = originalCardsBeforeCloning.map(card => card.cloneNode(true));
+                const clonesEndData = originalCardsBeforeCloning.map(card => card.cloneNode(true));
+
+                clonesEndData.forEach(clone => rowElement.appendChild(clone));
+                clonesStartData.slice().reverse().forEach(clone => rowElement.prepend(clone));
+                console.log(`[${rowType} Row] After cloning, rowElement now has ${rowElement.children.length} cards.`);
+                // --- END CLONING LOGIC ---
+
+                let originalContentWidth = 0;
+                let gapValue = parseFloat(window.getComputedStyle(rowElement).gap || 0);
+                originalCardsBeforeCloning.forEach((card, index) => {
+                    originalContentWidth += card.offsetWidth;
+                    if (index < originalCardsBeforeCloning.length - 1) {
+                        originalContentWidth += gapValue;
+                    }
+                });
+                console.log(`[${rowType} Row] Calculated originalContentWidth (based on ${originalCardsBeforeCloning.length} initial cards): ${originalContentWidth}`);
+
+                let initialTranslateX = -originalContentWidth;
+                let isDragging = false;
+                let startPointerX;
+                let currentDragOffset = 0;
+                let accumulatedDragOffset = 0;
+                let pageScrollOffset = 0;
+
+                rowElement.style.transform = `translateX(${initialTranslateX}px)`;
+                console.log(`[${rowType} Row] Set initial transform: translateX(${initialTranslateX}px)`);
+
+                // --- DEFINE CORE TRANSFORMATION AND ANIMATION FUNCTIONS ---
+                function applyTransformations() {
+                    let combinedTranslateX = initialTranslateX + pageScrollOffset + accumulatedDragOffset + currentDragOffset;
+
+                    // Snap logic
+                    if (originalContentWidth > 0) { // Avoid division by zero or issues if no cards
+                        if (combinedTranslateX > initialTranslateX + originalContentWidth / 2) {
+                            accumulatedDragOffset -= originalContentWidth;
+                            combinedTranslateX -= originalContentWidth;
+                            // console.log(`[${rowType} Row] Snapped Left. New accumulatedDragOffset: ${accumulatedDragOffset}`);
+                        } else if (combinedTranslateX < initialTranslateX - originalContentWidth / 2) {
+                            accumulatedDragOffset += originalContentWidth;
+                            combinedTranslateX += originalContentWidth;
+                            // console.log(`[${rowType} Row] Snapped Right. New accumulatedDragOffset: ${accumulatedDragOffset}`);
+                        }
+                    }
+                    rowElement.style.transform = `translateX(${combinedTranslateX}px)`;
+                }
+
+                function handlePageScrollAnimation() {
+                    const teamSectionForRect = document.querySelector('.team-section'); // Main team section
+                    if (!teamSectionForRect) return;
+
+                    const rect = teamSectionForRect.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    let progress = 0;
+
+                    const animationStartPoint = viewportHeight;
+                    const animationEndPoint = -rect.height;
+
+                    if (rect.top <= animationStartPoint && rect.bottom >= 0) {
+                        const currentScrollInAnimationRange = animationStartPoint - rect.top;
+                        const totalAnimationScrollRange = animationStartPoint - animationEndPoint;
+                        if (totalAnimationScrollRange !== 0) { // Avoid division by zero
+                            progress = currentScrollInAnimationRange / totalAnimationScrollRange;
+                        }
+                        progress = Math.max(0, Math.min(1, progress));
+                    } else if (rect.top > animationStartPoint) {
+                        progress = 0;
+                    } else {
+                        progress = 1;
+                    }
+
+                    const direction = isTopRow ? 1 : -1;
+                    pageScrollOffset = (progress - 0.5) * scrollAnimDist * direction;
+
+                    if (!isDragging) {
+                        applyTransformations();
+                    }
+                }
+
+                // --- DEFINE AND ATTACH DRAG HANDLERS ---
+                function onDragStart(e) {
+                    isDragging = true;
+                    startPointerX = e.pageX || e.touches[0].pageX;
+                    currentDragOffset = 0;
+                    rowWrapper.classList.add('is-dragging');
+                    rowElement.style.transition = 'none';
+                    // console.log(`[${rowType} Row] Drag Start`);
+                }
+
+                function onDragMove(e) {
+                    if (!isDragging) return;
+                    // e.preventDefault() is called by the touchmove listener specifically
+
+                    const currentPointerX = e.pageX || (e.touches && e.touches[0].pageX);
+                    if (currentPointerX === undefined) return;
+
+                    currentDragOffset = currentPointerX - startPointerX;
+                    applyTransformations();
+                }
+
+                function onDragEnd() {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    rowWrapper.classList.remove('is-dragging');
+                    accumulatedDragOffset += currentDragOffset;
+                    currentDragOffset = 0;
+                    // No explicit applyTransformations() here, as it was called during the last onDragMove.
+                    // Or, if you want a final snap check even if mouseup happens outside:
+                    applyTransformations(); 
+                    // console.log(`[${rowType} Row] Drag End. Accumulated offset: ${accumulatedDragOffset}`);
+                }
+
+                rowWrapper.addEventListener('mousedown', onDragStart);
+                rowWrapper.addEventListener('touchstart', (e) => {
+                    e.preventDefault(); // For touchstart, prevent default if we intend to handle the scroll
+                    onDragStart(e);
+                }, { passive: false });
+
+                document.addEventListener('mousemove', onDragMove);
+                document.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault(); // Prevent page scroll during touch drag
+                    onDragMove(e);
+                }, { passive: false });
+
+                document.addEventListener('mouseup', onDragEnd);
+                document.addEventListener('touchend', onDragEnd);
+                rowWrapper.addEventListener('mouseleave', () => {
+                    if (isDragging) onDragEnd();
+                });
+
+                // --- DEFINE AND ATTACH WHEEL HANDLER ---
+                rowWrapper.addEventListener('wheel', (e) => {
+                    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                        e.preventDefault();
+                        accumulatedDragOffset -= e.deltaX * 0.5; // Sensitivity factor
+                        rowElement.style.transition = 'none';
+                        applyTransformations();
+                    }
+                }, { passive: false });
+
+                // --- SETUP INTERSECTION OBSERVER (uses handlePageScrollAnimation) ---
+                const teamSectionForObserver = document.querySelector('.team-section');
+                if (teamSectionForObserver) {
+                    const observerOptions = { rootMargin: '0px', threshold: 0.01 };
+                    // Create a unique observer for each row instance if necessary, or a shared one if logic is identical
+                    // For now, assuming 'teamSectionForObserver' is the overall trigger for both rows' animations
+                    const teamObserver = new IntersectionObserver((entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.target === teamSectionForObserver) { // Make sure it's the main section
+                                if (entry.isIntersecting) {
+                                    window.addEventListener('scroll', handlePageScrollAnimation, { passive: true });
+                                    handlePageScrollAnimation(); // Initial call
+                                    // console.log(`[${rowType} Row] Observer: Intersecting. Attached scroll listener.`);
+                                } else {
+                                    window.removeEventListener('scroll', handlePageScrollAnimation);
+                                    // console.log(`[${rowType} Row] Observer: Not intersecting. Removed scroll listener.`);
+                                }
+                            }
+                        });
+                    }, observerOptions);
+                    
+                    // Check if already observed to avoid multiple observers on same element from multiple calls
+                    // This is a simple check; a more robust way would be to manage observers centrally
+                    if (!teamSectionForObserver._hasBeenObservedByCarousel) {
+                        teamObserver.observe(teamSectionForObserver);
+                        teamSectionForObserver._hasBeenObservedByCarousel = true; // Mark as observed
+                    } else {
+                        // If already observed by another row's setup, just ensure current row's handler is called if intersecting
+                        if (isElementInViewport(teamSectionForObserver)) {
+                            window.addEventListener('scroll', handlePageScrollAnimation, { passive: true });
+                            handlePageScrollAnimation();
+                        }
+                    }
+                    
+                    // Initial check if already in view when page loads (independent of observer for immediate setup)
+                    if (isElementInViewport(teamSectionForObserver)) {
+                        handlePageScrollAnimation();
+                    }
+                } else {
+                    console.warn(`[${rowType} Row] .team-section not found for IntersectionObserver.`);
+                }
+
+                console.log(`Finished setting up ${rowType} Row fully with scrollAnimDist: ${scrollAnimDist}.`);
+            }
+
+            function isElementInViewport(el) {
+                if (!el) return false;
+                const rect = el.getBoundingClientRect();
+                return (
+                    rect.top < window.innerHeight &&
+                    rect.bottom > 0 
+                    // Optionally add left/right checks too if needed
+                    // rect.left < window.innerWidth &&
+                    // rect.right > 0
+                );
+            }
         })
         .catch(error => {
             console.error('Failed to load or parse content.json:', error);

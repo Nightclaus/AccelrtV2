@@ -637,7 +637,46 @@ document.addEventListener('DOMContentLoaded', function() {
     loader.style.fontSize = '24px';
     loader.style.fontFamily = 'Inter, sans-serif';
     loader.style.color = '#1E1E2F';
-    loader.textContent = 'Loading Content...';
+
+    const funFacts = [
+        "Did you know? A group of flamingos is called a 'flamboyance'.",
+        "Honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still perfectly edible!",
+        "The national animal of Scotland is the unicorn.",
+        "A jiffy is an actual unit of time: 1/100th of a second.",
+        "Bananas are berries, but strawberries aren't!",
+        "Octopuses have three hearts and blue blood.",
+        "The inventor of the Pringles can is now buried in one.",
+        "Brewing some awesomeness...",
+        "Fetching the good stuff...",
+        "Just a moment, polishing the pixels...",
+        "Warming up the hamsters...",
+        "Our servers are working hard (or hardly working?)...",
+        "Loading... because good things take time (and API calls).",
+        "Hang tight, almost there!",
+        "Counting to infinity... twice.",
+        "Remember to blink!",
+        "Why did the scarecrow win an award? Because he was outstanding in his field!",
+        "What do you call a fish with no eyes? Fsh!",
+        "Chuck Norris can compile C++ on a TI-83 calculator.",
+        "There are 10 types of people in the world: those who understand binary, and those who don't."
+    ];
+
+    function getRandomFact() {
+        const randomIndex = Math.floor(Math.random() * funFacts.length);
+        return funFacts[randomIndex];
+    }
+
+    // Set initial random fact
+    loader.textContent = getRandomFact();
+
+    let factInterval = setInterval(() => {
+        if (document.body.contains(loader)) { // Only update if loader is still visible
+             loadingTextElement.textContent = getRandomFact();
+        } else {
+            clearInterval(factInterval);
+        }
+    }, 4000); // Change fact every 4 seconds
+
     document.body.appendChild(loader);
     document.body.style.overflow = 'hidden'; // Prevent scrolling while loader is active
 

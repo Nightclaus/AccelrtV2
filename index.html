@@ -756,7 +756,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         updateText('.member-description', data.teamMembers[index].description, card);
 
                         if (data.teamMembers[index].linkedinUrl) {
-                            console.log("a1");
                             updateAttribute('.linkedin-icon', 'href', data.teamMembers[index].linkedinUrl, card);
                             console.log(`Updated LinkedIn URL for ${data.teamMembers[index].name} to: ${data.teamMembers[index].linkedinUrl}`);
                         } else {
